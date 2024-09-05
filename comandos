@@ -15,7 +15,7 @@ ativar o ambiente virtual:
 venv/Scripts/Activate.ps1
 
 comando para inslatar todas as bibliotecas necessárias:
-pip install kivy
+pip install kivy requests
 
 
 para desativar o ambiente virtual:
