@@ -1,0 +1,77 @@
+WindowManager:
+    LoginScreen:
+    MainScreen:
+
+<LoginScreen>:
+    name: 'login'
+
+    # Adicionando uma imagem de fundo usando canvas
+    canvas.before:
+        Rectangle:
+            source: 'OceanStream.png'  # Nome do arquivo da imagem
+            pos: self.pos
+            size: self.size
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 20
+        spacing: 10
+
+        Label:
+            text: 'OceanStream'
+            font_size: 32
+            size_hint_y: None
+            height: 100
+            color: 1, 1, 1, 1  # Cor do texto para contrastar com a imagem de fundo
+
+        TextInput:
+            id: email
+            hint_text: 'Email'
+            multiline: False
+            size_hint_y: None
+            height: 50
+
+        TextInput:
+            id: senha
+            hint_text: 'Senha'
+            multiline: False
+            password: True
+            size_hint_y: None
+            height: 50
+
+        Button:
+            text: 'Login'
+            size_hint_y: None
+            height: 50
+            on_press: root.login()
+
+        Label:
+            id: error_message
+            text: ''
+            color: 1, 0, 0, 1
+            size_hint_y: None
+            height: 20
+
+        Button:
+            text: 'Não possui cadastro? Clique aqui'
+            size_hint_y: None
+            height: 50
+            on_press: app.root.current = 'register'  # Placeholder para tela de registro
+
+<MainScreen>:
+    name: 'main'
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 20
+        spacing: 10
+
+        Label:
+            text: 'Bem-vindo ao OceanStream!'
+            font_size: 24
+
+        Button:
+            text: 'Sair'
+            size_hint_y: None
+            height: 50
+            on_press: app.root.current = 'login'
