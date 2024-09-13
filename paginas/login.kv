@@ -1,0 +1,69 @@
+#:kivy 2.3.0
+#:import utils kivy.utils
+
+<TelaLogin>:
+    name: "login"
+    canvas.before:
+        Color:
+            rgba: (117/255.0, 205/255.0, 255/255.0, 1)
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+    BoxLayout:
+        orientation: "vertical"
+        size: root.width, root.height
+        spacing: 10
+        padding: 20
+
+        GridLayout:
+            canvas.before:
+                Color:
+                    rgba: (1, 1, 1, .2)
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+            cols:1
+
+            Label:
+                text: "E-Mail"
+                height: 35
+                size_hint: (.9, None)
+                color: (1,1,1)
+                outline_color: (0,0,0)
+                outline_width: 2
+                bold: True
+            TextInput:
+                id: email
+                multiline: False
+                background_color: (1,1,1,.5)
+                height: 35
+                size_hint: (.9, None)
+
+            Label:
+                text: "Senha"
+                height: 35
+                size_hint: (.9, None)
+                color: (1,1,1)
+                outline_color: (0,0,0)
+                outline_width: 2
+                bold: True
+            TextInput:
+                id: senha
+                multiline: False
+                password: True  # Para ocultar a senha
+                background_color: (1,1,1,.5)
+                height: 35
+                size_hint: (.9, None)
+
+        Button:
+            text: "Login"
+            outline_width: 0
+            size_hint: (None, None)
+            height: 50
+            width: 250
+            on_press: root.submit()
+            background_normal: ''
+            background_color: utils.get_color_from_hex('#04949c')
+            font_size: 32
+            pos_hint: {'center_y': .5, 'center_x': .5}
