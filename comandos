@@ -14,9 +14,14 @@ python3 -m venv venv
 ativar o ambiente virtual: 
 venv/Scripts/Activate.ps1
 
-comando para inslatar todas as bibliotecas necessárias:
-pip install kivy requests plyer pyjwt
+inslatar as bibliotecas utilizadas no projeto:
+pip install -r requirements.txt
 
 
 para desativar o ambiente virtual:
 deactivate
+
+
+
+salvar bibliotecas:
+pip freeze > requirements.txt

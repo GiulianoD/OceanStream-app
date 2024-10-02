@@ -1,18 +1,19 @@
 #:kivy 2.3.0
 #:import utils kivy.utils
 
-# <Label>:
-    # font_size: 18
-    # color: utils.get_color_from_hex('#FFFFFF')
-    # text_size: self.width, None
-    # valign: 'middle'
-    # halign: 'center'
+<Label>:
+    font_size: 18
+    color: utils.get_color_from_hex('#FFFFFF')
+    text_size: self.width, None
+    valign: 'middle'
+    halign: 'center'
 
 <Overview>:
-    name: "overview"
     BoxLayout:
         orientation: 'vertical'
         size: root.width, root.height
+        padding: [0,0,0,50]
+
         canvas.before:
             Color:
                 rgba: utils.get_color_from_hex('#013336')
@@ -127,4 +128,6 @@
                     font_size: 18
                     color: utils.get_color_from_hex('#FFFFFF')
 
+    MDBottomAppBar:
+        height: 50
 #
