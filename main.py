@@ -1,5 +1,6 @@
 # import kivy
 from kivymd.app import MDApp
+from kivy.animation import Animation
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.properties import ObjectProperty
 from kivy.uix.label import Label
@@ -11,6 +12,11 @@ import requests
 import json
 import os
 import jwt
+from kivy.config import Config
+Config.set('graphics', 'multisamples', '0')
+
+
+from navigation_bar import NavigationBar  # Importando a barra de navegação
 
 ###
 '''
@@ -76,9 +82,10 @@ def is_token_valid(token):
 Builder.load_file('paginas/overview.kv')
 class Overview(Screen):
     pass
-    # def __init__(self, **kwargs):
-    #     super(Tela1, self).__init__(**kwargs)
-    #     self.add_widget(Label(text="Esta é a Tela 1"))
+
+Builder.load_file('paginas/alertas.kv')
+class Alertas(Screen):
+    pass
 
 Builder.load_file('paginas/login.kv')
 class TelaLogin(Screen):
@@ -157,12 +164,16 @@ class OceanStream(MDApp):
         # Adiciona as telas ao ScreenManager
         gerenciador.add_widget(TelaCarregamento(name='load'))
         gerenciador.add_widget(Overview(name='overview'))
+        gerenciador.add_widget(Alertas(name='alertas'))
         gerenciador.add_widget(TelaLogin(name='login'))
 
         # Define a tela inicial como a tela de carregamento
         gerenciador.current = 'load'
 
-        return gerenciador
+        navigation_bar = NavigationBar(screen_manager=gerenciador)
+
+        # return gerenciador
+        return navigation_bar
 
 if __name__ == '__main__':
     OceanStream().run()
