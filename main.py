@@ -1,4 +1,3 @@
-# import kivy
 from kivymd.app import MDApp
 from kivy.animation import Animation
 from kivy.uix.screenmanager import ScreenManager, Screen
@@ -15,30 +14,21 @@ import jwt
 from kivy.config import Config
 Config.set('graphics', 'multisamples', '0')
 
-
 from navigation_bar import NavigationBar  # Importando a barra de navegação
 
-###
-'''
-    Json Web Token [JWT]
-'''
-###
+### JWT
 JWT_FILE = "oceanstream.jwt"
 
 def store_access_token(token):
-    # Salvar o token em um arquivo persistente
-    app_storage_dir = storagepath.get_home_dir()  # Diretório de armazenamento do app
+    app_storage_dir = storagepath.get_home_dir()
     token_file_path = os.path.join(app_storage_dir, JWT_FILE)
-
     with open(token_file_path, 'w') as token_file:
         token_file.write(token)
     print(f"Token salvo em {token_file_path}")
 
 def get_access_token():
-    # Recuperar o token armazenado
     app_storage_dir = storagepath.get_home_dir()
     token_file_path = os.path.join(app_storage_dir, JWT_FILE)
-
     if os.path.exists(token_file_path):
         with open(token_file_path, 'r') as token_file:
             token = token_file.read()
@@ -49,10 +39,8 @@ def get_access_token():
         return ""
 
 def delete_access_token():
-    # Deletar o token armazenado
     app_storage_dir = storagepath.get_home_dir()
     token_file_path = os.path.join(app_storage_dir, JWT_FILE)
-
     if os.path.exists(token_file_path):
         os.remove(token_file_path)
         print("Token deletado.")
@@ -61,7 +49,6 @@ def delete_access_token():
 
 def is_token_valid(token):
     try:
-        # Decodificar o token JWT para verificar a validade
         decoded_token = jwt.decode(token, options={"verify_signature": False})
         exp_timestamp = decoded_token.get('exp')
         if exp_timestamp:
@@ -73,11 +60,7 @@ def is_token_valid(token):
         print(f"Erro ao verificar token: {str(e)}")
         return False
 
-###
-'''
-    telas
-'''
-###
+### Telas
 
 Builder.load_file('paginas/overview.kv')
 class Overview(Screen):
@@ -105,26 +88,15 @@ class TelaLogin(Screen):
     def submit(self):
         email = self.ids.email.text
         senha = self.ids.senha.text
-
-        # Montar o payload JSON
-        payload = {
-            "email": email,
-            "senha": senha
-        }
-
-        # Fazer a requisição POST
+        payload = {"email": email, "senha": senha}
         url = 'https://oceanstream-8b3329b99e40.herokuapp.com/login'
         headers = {'Content-Type': 'application/json'}
 
         try:
             response = requests.post(url, data=json.dumps(payload), headers=headers)
-
             if response.status_code == 200:
-                # Obter a resposta
                 data = response.json()
                 access_token = data.get('accessToken')
-
-                # Armazenar o accessToken de forma persistente
                 store_access_token(access_token)
                 self.manager.current = 'overview'
             else:
@@ -133,7 +105,6 @@ class TelaLogin(Screen):
         except Exception as e:
             print(f"Erro ao tentar fazer login: {str(e)}")
         
-        # Limpar o campo de senha
         self.ids.senha.text = ""
 
 # Tela de carregamento
@@ -141,11 +112,11 @@ class TelaCarregamento(Screen):
     def __init__(self, **kwargs):
         super(TelaCarregamento, self).__init__(**kwargs)
         self.add_widget(Label(text="OceanStream"))
-        Clock.schedule_once(self.verificar_token, 2.5)  # Aguarda 2 segundos para simular o carregamento
+        Clock.schedule_once(self.verificar_token, 2.5)
 
     def verificar_token(self, dt):
         try:
-            if is_token_valid(token = get_access_token()):
+            if is_token_valid(get_access_token()):
                 self.manager.current = 'overview'
             else:
                 delete_access_token()
@@ -159,21 +130,37 @@ class GerenciadorTelas(ScreenManager):
 
 class OceanStream(MDApp):
     def build(self):
-        gerenciador = GerenciadorTelas()
+        self.gerenciador = GerenciadorTelas()
         
         # Adiciona as telas ao ScreenManager
-        gerenciador.add_widget(TelaCarregamento(name='load'))
-        gerenciador.add_widget(Overview(name='overview'))
-        gerenciador.add_widget(Alertas(name='alertas'))
-        gerenciador.add_widget(TelaLogin(name='login'))
+        self.gerenciador.add_widget(TelaCarregamento(name='load'))
+        self.gerenciador.add_widget(Overview(name='overview'))
+        self.gerenciador.add_widget(Alertas(name='alertas'))
+        self.gerenciador.add_widget(TelaLogin(name='login'))
 
         # Define a tela inicial como a tela de carregamento
-        gerenciador.current = 'load'
+        self.gerenciador.current = 'load'
 
-        navigation_bar = NavigationBar(screen_manager=gerenciador)
+        # Passa delete_access_token como função de logout para NavigationBar
+        self.navigation_bar = NavigationBar(screen_manager=self.gerenciador, logout_callback=self.logout)
 
-        # return gerenciador
-        return navigation_bar
+        # Observa as mudanças de tela para controlar a visibilidade da toolbar
+        self.gerenciador.bind(current=self.on_screen_change)
+
+        return self.navigation_bar
+
+    def on_screen_change(self, instance, value):
+        # Oculta a toolbar se a tela atual for 'login'
+        if value == 'login':
+            self.navigation_bar.toolbar.opacity = 0
+            self.navigation_bar.toolbar.disabled = True
+        else:
+            self.navigation_bar.toolbar.opacity = 1
+            self.navigation_bar.toolbar.disabled = False
+
+    def logout(self):
+        delete_access_token()
+        self.gerenciador.current = 'login'
 
 if __name__ == '__main__':
     OceanStream().run()

@@ -1,5 +1,5 @@
 from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.button import MDFloatingActionButton, MDIconButton
+from kivymd.uix.button import MDFloatingActionButton, MDIconButton, MDRaisedButton
 from kivy.metrics import dp
 from kivy.animation import Animation
 from kivymd.uix.label import MDLabel
@@ -7,10 +7,11 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
 
 class NavigationBar(MDBoxLayout):
-    def __init__(self, screen_manager, **kwargs):
+    def __init__(self, screen_manager, logout_callback, **kwargs):
         super().__init__(**kwargs)
         self.orientation = 'vertical'
         self.screen_manager = screen_manager
+        self.logout_callback = logout_callback  # Callback de logout
 
         # Layout da toolbar expansível, com altura inicial para comportar o ícone
         self.toolbar = MDBoxLayout(
@@ -43,11 +44,19 @@ class NavigationBar(MDBoxLayout):
             color=(0, 0, 0, 1)  # Cor preta
         )
 
-        # Caixa expansível para as opções, inicialmente recolhida
+        # Caixa expansível para as opções, inicialmente oculta
         self.options_box = BoxLayout(
+            orientation='vertical',
+            size_hint_y=None,
+            height=0  # Inicia oculta
+        )
+
+        # Layout para os ícones de opções
+        self.options_icons_box = BoxLayout(
             orientation='horizontal',
             size_hint_y=None,
-            height=0  # Inicia recolhida
+            height=dp(80),
+            spacing=dp(10)
         )
 
         # Lista de opções com ícones e textos correspondentes
@@ -87,14 +96,19 @@ class NavigationBar(MDBoxLayout):
             # Adicionar o ícone e o label ao box
             option_box.add_widget(button)
             option_box.add_widget(label)
-            self.options_box.add_widget(option_box)
+            self.options_icons_box.add_widget(option_box)
+
+        # Botão de logout, centralizado abaixo das opções
+        self.logout_button = MDRaisedButton(
+            text="Logout",
+            pos_hint={"center_x": 0.5},
+            on_release=self.logout
+        )
 
         # Adicionar componentes à toolbar em ordem
         self.toolbar.add_widget(self.expand_button)  # Ícone de expansão no topo da toolbar
         self.toolbar.add_widget(self.menu_title)      # Título "Menu" abaixo do ícone de expansão
-        self.toolbar.add_widget(self.options_box)     # Opções abaixo do título "Menu"
-        
-        # Adicionar o ScreenManager e toolbar ao layout principal
+        self.toolbar.add_widget(self.options_box)     # Caixa de opções inicialmente vazia
         self.add_widget(self.screen_manager)
         self.add_widget(self.toolbar)
 
@@ -102,13 +116,11 @@ class NavigationBar(MDBoxLayout):
         # Alterna entre expandir e recolher a área de opções e o título "Menu"
         if self.options_box.height == 0:
             # Expande a área de opções e exibe o título "Menu"
-            anim_options = Animation(height=dp(100), d=0.3)  # Expande a altura das opções
-            anim_toolbar = Animation(height=dp(186), d=0.3)  # Expande a altura total da toolbar
+            self.options_box.add_widget(self.options_icons_box)
+            self.options_box.add_widget(self.logout_button)
+            anim_options = Animation(height=dp(150), d=0.3)  # Expande a altura das opções
+            anim_toolbar = Animation(height=dp(206), d=0.3)  # Expande a altura total da toolbar
             anim_title = Animation(opacity=1, d=0.3)         # Exibe o título "Menu"
-
-            # Define animação de opacidade para os botões de opção
-            for child in self.options_box.children:
-                anim_options += Animation(opacity=1, d=0.3)
             
             # Inicia animação do título
             anim_title.start(self.menu_title)
@@ -118,9 +130,8 @@ class NavigationBar(MDBoxLayout):
             anim_toolbar = Animation(height=dp(56), d=0.3)  # Retorna a altura total da toolbar para o inicial
             anim_title = Animation(opacity=0, d=0.3)        # Oculta o título "Menu"
 
-            # Recolhe as opções da toolbar
-            for child in self.options_box.children:
-                anim_options += Animation(opacity=0, d=0.3)
+            # Remove os widgets para que não possam ser clicados
+            self.options_box.clear_widgets()
 
             # Inicia animação do título
             anim_title.start(self.menu_title)
@@ -135,3 +146,8 @@ class NavigationBar(MDBoxLayout):
             self.screen_manager.current = screen_name
         else:
             print(f"Tela '{screen_name}' não encontrada.")
+
+    def logout(self, instance):
+        # Função para logout que chama o callback passado
+        self.logout_callback()
+        self.screen_manager.current = 'login'  # Redireciona para a tela de login
