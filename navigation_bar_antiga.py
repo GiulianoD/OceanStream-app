@@ -1,5 +1,5 @@
 from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.button import MDFloatingActionButton, MDRaisedButton, MDIconButton
+from kivymd.uix.button import MDFloatingActionButton, MDIconButton, MDRaisedButton
 from kivy.metrics import dp
 from kivy.animation import Animation
 from kivymd.uix.label import MDLabel
@@ -13,12 +13,12 @@ class NavigationBar(MDBoxLayout):
         self.screen_manager = screen_manager
         self.logout_callback = logout_callback  # Callback de logout
 
-        # Layout da toolbar expansível
+        # Layout da toolbar expansível, com altura inicial para comportar o ícone
         self.toolbar = MDBoxLayout(
             orientation='vertical',
             spacing=dp(10),
             size_hint_y=None,
-            height=dp(56),  # Altura inicial para o ícone de expansão
+            height=dp(56),  # Altura inicial para o ícone
             padding=[dp(10), dp(10)]
         )
 
@@ -32,7 +32,7 @@ class NavigationBar(MDBoxLayout):
             on_release=self.toggle_toolbar
         )
 
-# Título "Menu", inicialmente invisível e posicionado abaixo do botão de expansão
+        # Título "Menu", inicialmente invisível e posicionado abaixo do botão de expansão
         self.menu_title = Label(
             text="Menu",
             font_size="20sp",
@@ -72,36 +72,31 @@ class NavigationBar(MDBoxLayout):
         for option in options:
             option_box = BoxLayout(
                 orientation="vertical",
-                size_hint=(1, None),
+                size_hint=(None, None),
                 width=dp(80),
                 height=dp(80),
                 spacing=dp(5),
                 pos_hint={"center_x": 0.5, "center_y": 0.5}
             )
 
-            # Configurar o botão de ícone
             button = MDIconButton(
                 icon=option["icon"],
                 icon_size="32sp",
-                on_release=lambda x, screen=option["screen"]: self.switch_to_screen(screen),
-                pos_hint={"center_x": 0.5}  # Centralizar o ícone horizontalmente
+                on_release=lambda x, screen=option["screen"]: self.switch_to_screen(screen)
             )
 
-            # Configurar o label abaixo do ícone
             label = MDLabel(
                 text=option["text"],
                 font_style="Caption",
                 halign="center",
                 size_hint_y=None,
-                height=dp(20),
-                pos_hint={"center_x": 0.5}  # Centralizar o texto horizontalmente
+                height=dp(20)
             )
 
-            # Adicionar o ícone e o label ao BoxLayout
+            # Adicionar o ícone e o label ao box
             option_box.add_widget(button)
             option_box.add_widget(label)
             self.options_icons_box.add_widget(option_box)
-
 
         # Botão de logout, centralizado abaixo das opções
         self.logout_button = MDRaisedButton(
@@ -153,7 +148,6 @@ class NavigationBar(MDBoxLayout):
             print(f"Tela '{screen_name}' não encontrada.")
 
     def logout(self, instance):
-        self.toggle_toolbar(instance)
         # Função para logout que chama o callback passado
         self.logout_callback()
         self.screen_manager.current = 'login'  # Redireciona para a tela de login
