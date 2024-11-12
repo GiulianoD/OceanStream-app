@@ -32,7 +32,7 @@ class NavigationBar(MDBoxLayout):
             on_release=self.toggle_toolbar
         )
 
-# Título "Menu", inicialmente invisível e posicionado abaixo do botão de expansão
+        # Título "Menu", inicialmente invisível e posicionado abaixo do botão de expansão
         self.menu_title = Label(
             text="Menu",
             font_size="20sp",

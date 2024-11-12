@@ -2,12 +2,15 @@
 #:import utils kivy.utils
 
 <TelaLogin>:
-    # Adicionando uma imagem de fundo usando canvas
-    canvas.before:
-        Rectangle:
-            source: 'res/bkg.png'  # Nome do arquivo da imagem
-            pos: self.pos
-            size: self.size
+    FloatLayout:
+        # Adicionando uma imagem de fundo usando canvas
+        canvas.before:
+            Color:
+                rgba: 1, 1, 1, 1
+            Rectangle:
+                source: 'res/bkg.png'  # Nome do arquivo da imagem
+                pos: self.pos
+                size: self.size
 
     BoxLayout:
         orientation: 'vertical'

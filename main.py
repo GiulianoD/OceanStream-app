@@ -1,5 +1,5 @@
 from kivymd.app import MDApp
-from kivy.animation import Animation
+# from kivy.animation import Animation
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.properties import ObjectProperty
 from kivy.uix.label import Label
