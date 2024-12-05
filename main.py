@@ -1,5 +1,4 @@
 from kivymd.app import MDApp
-# from kivy.animation import Animation
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.properties import ObjectProperty
 from kivy.uix.label import Label
@@ -63,14 +62,16 @@ def is_token_valid(token):
 ### Telas
 
 Builder.load_file('paginas/overview.kv')
+Builder.load_file('paginas/alertas.kv')
+Builder.load_file('paginas/login.kv')
+Builder.load_file('paginas/configuracao.kv')
+
 class Overview(Screen):
     pass
 
-Builder.load_file('paginas/alertas.kv')
 class Alertas(Screen):
     pass
 
-Builder.load_file('paginas/login.kv')
 class TelaLogin(Screen):
     email = ObjectProperty(None)
     senha = ObjectProperty(None)
@@ -93,7 +94,7 @@ class TelaLogin(Screen):
         headers = {'Content-Type': 'application/json'}
 
         try:
-            response = requests.post(url, data=json.dumps(payload), headers=headers)
+            response = requests.post(url, json=payload, headers=headers)
             if response.status_code == 200:
                 data = response.json()
                 access_token = data.get('accessToken')
@@ -101,11 +102,13 @@ class TelaLogin(Screen):
                 self.manager.current = 'overview'
             else:
                 print(f"Falha no login: {response.status_code} - {response.text}")
-        
         except Exception as e:
             print(f"Erro ao tentar fazer login: {str(e)}")
         
         self.ids.senha.text = ""
+
+class Configuracao(Screen):
+    pass
 
 # Tela de carregamento
 class TelaCarregamento(Screen):
@@ -129,6 +132,10 @@ class GerenciadorTelas(ScreenManager):
     pass
 
 class OceanStream(MDApp):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.selected_parameters = {}  # Dicionário para armazenar parâmetros selecionados por equipamento
+
     def build(self):
         self.gerenciador = GerenciadorTelas()
         
@@ -137,6 +144,7 @@ class OceanStream(MDApp):
         self.gerenciador.add_widget(Overview(name='overview'))
         self.gerenciador.add_widget(Alertas(name='alertas'))
         self.gerenciador.add_widget(TelaLogin(name='login'))
+        self.gerenciador.add_widget(Configuracao(name='configuracao'))
 
         # Define a tela inicial como a tela de carregamento
         self.gerenciador.current = 'load'
@@ -149,9 +157,22 @@ class OceanStream(MDApp):
 
         return self.navigation_bar
 
+    def toggle_parameter(self, equipment, parameter, state):
+        # Inicializa o equipamento se não estiver no dicionário
+        if equipment not in self.selected_parameters:
+            self.selected_parameters[equipment] = set()
+
+        if state == 'down':  # Adiciona parâmetro ao conjunto se marcado
+            self.selected_parameters[equipment].add(parameter)
+        else:  # Remove o parâmetro se desmarcado
+            self.selected_parameters[equipment].discard(parameter)
+
+        # Verifica os parâmetros selecionados
+        print(f"Parâmetros selecionados para {equipment}: {self.selected_parameters[equipment]}")
+
     def on_screen_change(self, instance, value):
-        # Oculta a toolbar se a tela atual for 'login'
-        if value == 'login':
+        # Oculta a toolbar se a tela atual for 'login' ou 'configuracao'
+        if value in ['login', 'configuracao']:
             self.navigation_bar.toolbar.opacity = 0
             self.navigation_bar.toolbar.disabled = True
         else:

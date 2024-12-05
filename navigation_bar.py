@@ -170,6 +170,7 @@ class NavigationBar(MDBoxLayout):
     def switch_to_screen(self, screen_name):
         # Mudar para a tela especificada
         if self.screen_manager.has_screen(screen_name):
+            self.toggle_toolbar(None)
             self.screen_manager.current = screen_name
         else:
             print(f"Tela '{screen_name}' não encontrada.")

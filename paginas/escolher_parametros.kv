@@ -1,0 +1,57 @@
+#:kivy 2.3.0
+# File: paginas/escolher_parametros.kv
+<EscolherParametros>:
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: dp(10)
+
+        # Header da página
+        BoxLayout:
+            size_hint_y: None
+            height: dp(56)
+            padding: [dp(10), dp(10)]
+            canvas.before:
+                Color:
+                    rgba: (0.02, 0.58, 0.61, 1)  # Cor #04949C
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+
+            # Seta para voltar
+            MDIconButton:
+                icon: "arrow-left"
+                size_hint: (None, None)
+                size: (dp(36), dp(36))
+                theme_text_color: "Custom"
+                text_color: (1, 1, 1, 1)
+                on_release:
+                    app.gerenciador.current = 'overview'
+
+            # Título
+            Label:
+                text: "Escolher Parâmetros"
+                font_size: "20sp"
+                color: (1, 1, 1, 1)
+                bold: True
+                halign: 'left'
+                valign: 'middle'
+
+        # Conteúdo da página
+        ScrollView:
+            BoxLayout:
+                orientation: 'vertical'
+                padding: dp(10)
+                spacing: dp(10)
+                size_hint_y: None
+                height: self.minimum_height
+
+                # Simulando opções de parâmetros
+                MDCheckbox:
+                    group: "parametros"
+                    text: "Parâmetro 1"
+                MDCheckbox:
+                    group: "parametros"
+                    text: "Parâmetro 2"
+                MDCheckbox:
+                    group: "parametros"
+                    text: "Parâmetro 3"

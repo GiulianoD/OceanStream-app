@@ -1,0 +1,409 @@
+#:kivy 2.3.0
+<Configuracao>:
+    BoxLayout:
+        orientation: 'vertical'
+
+        # Header fixo no topo
+        BoxLayout:
+            size_hint_y: None
+            height: dp(56)
+            padding: [dp(10), dp(10)]
+            canvas.before:
+                Color:
+                    rgba: (0.02, 0.58, 0.61, 1)  # Cor #04949C
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+
+            MDIconButton:
+                icon: "arrow-left"
+                size_hint: (None, None)
+                size: (dp(36), dp(36))
+                theme_text_color: "Custom"
+                text_color: (1, 1, 1, 1)
+                on_release:
+                    app.gerenciador.current = 'overview'
+
+            Label:
+                text: "Configurar meu Overview"
+                font_size: "18sp"
+                color: (1, 1, 1, 1)  # Branco
+                bold: True
+                halign: 'left'
+                valign: 'middle'
+
+        ScrollView:
+            BoxLayout:
+                orientation: 'vertical'
+                padding: dp(10)
+                spacing: dp(10)
+                size_hint_y: None
+                height: self.minimum_height
+
+                # Caixa para Boia 04
+                BoiaConfig:
+                    codigo_boia: "04"
+
+                # Caixa para Boia 08
+                BoiaConfig:
+                    codigo_boia: "08"
+
+                # Caixa para Boia 10
+                BoiaConfig:
+                    codigo_boia: "10"
+
+                # Caixa para Marégrafo
+                MaregrafoConfig:
+                    codigo_maregrafo: "01"
+
+                # Caixa para Estação Meteorológica
+                EstacaoMeteorologicaConfig:
+                    codigo_estacao: "01"
+
+                # Ondógrafos
+                OndografoConfig:
+                    nome: "Píer II"
+
+                OndografoConfig:
+                    nome: "TGL"
+
+                OndografoConfig:
+                    nome: "TPD"
+
+                OndografoConfig:
+                    nome: "TPM"
+
+<BoiaConfig@BoxLayout>:
+    codigo_boia: ""
+    orientation: 'vertical'
+    size_hint_y: None
+    height: self.minimum_height
+    padding: dp(10)
+    spacing: dp(10)
+    canvas.before:
+        Color:
+            rgba: (0.02, 0.29, 0.61, 1)  # Cor #044B9C
+        RoundedRectangle:
+            size: self.size
+            pos: self.pos
+            radius: [dp(10)]
+
+    Label:
+        text: "Boia " + root.codigo_boia
+        font_size: "20sp"
+        color: (1, 1, 1, 1)  # Branco
+        bold: True
+        halign: 'left'
+        valign: 'middle'
+
+    BoxLayout:
+        orientation: 'horizontal'
+        size_hint_y: None
+        height: dp(40)
+        spacing: dp(10)
+
+        Label:
+            text: "Corrente Fundo"
+            font_size: "16sp"
+            color: (1, 1, 1, 1)
+            halign: 'left'
+            valign: 'middle'
+
+        MDCheckbox:
+            size_hint: [None, None]
+            size: dp(30), dp(30)
+            color: (1, 1, 1, 1)
+            active_color: (1, 1, 1, 1)
+            pos_hint: {'center_y': 0.5}
+            on_state:
+                app.toggle_parameter('Boia ' + root.codigo_boia, 'Corrente Fundo', self.state)
+
+    BoxLayout:
+        orientation: 'horizontal'
+        size_hint_y: None
+        height: dp(40)
+        spacing: dp(10)
+
+        Label:
+            text: "Corrente Meio"
+            font_size: "16sp"
+            color: (1, 1, 1, 1)
+            halign: 'left'
+            valign: 'middle'
+
+        MDCheckbox:
+            size_hint: [None, None]
+            size: dp(30), dp(30)
+            color: (1, 1, 1, 1)
+            active_color: (1, 1, 1, 1)
+            pos_hint: {'center_y': 0.5}
+            on_state:
+                app.toggle_parameter('Boia ' + root.codigo_boia, 'Corrente Meio', self.state)
+
+    BoxLayout:
+        orientation: 'horizontal'
+        size_hint_y: None
+        height: dp(40)
+        spacing: dp(10)
+
+        Label:
+            text: "Corrente Superfície"
+            font_size: "16sp"
+            color: (1, 1, 1, 1)
+            halign: 'left'
+            valign: 'middle'
+
+        MDCheckbox:
+            size_hint: [None, None]
+            size: dp(30), dp(30)
+            color: (1, 1, 1, 1)
+            active_color: (1, 1, 1, 1)
+            pos_hint: {'center_y': 0.5}
+            on_state:
+                app.toggle_parameter('Boia ' + root.codigo_boia, 'Corrente Superfície', self.state)
+
+    BoxLayout:
+        orientation: 'horizontal'
+        size_hint_y: None
+        height: dp(40)
+        spacing: dp(10)
+
+        Label:
+            text: "Ondas"
+            font_size: "16sp"
+            color: (1, 1, 1, 1)
+            halign: 'left'
+            valign: 'middle'
+
+        MDCheckbox:
+            size_hint: [None, None]
+            size: dp(30), dp(30)
+            color: (1, 1, 1, 1)
+            active_color: (1, 1, 1, 1)
+            pos_hint: {'center_y': 0.5}
+            on_state:
+                app.toggle_parameter('Boia ' + root.codigo_boia, 'Ondas', self.state)
+
+    BoxLayout:
+        orientation: 'horizontal'
+        size_hint_y: None
+        height: dp(40)
+        spacing: dp(10)
+
+        Label:
+            text: "Sea"
+            font_size: "16sp"
+            color: (1, 1, 1, 1)
+            halign: 'left'
+            valign: 'middle'
+
+        MDCheckbox:
+            size_hint: [None, None]
+            size: dp(30), dp(30)
+            color: (1, 1, 1, 1)
+            active_color: (1, 1, 1, 1)
+            pos_hint: {'center_y': 0.5}
+            on_state:
+                app.toggle_parameter('Boia ' + root.codigo_boia, 'Sea', self.state)
+
+    BoxLayout:
+        orientation: 'horizontal'
+        size_hint_y: None
+        height: dp(40)
+        spacing: dp(10)
+
+        Label:
+            text: "Swell"
+            font_size: "16sp"
+            color: (1, 1, 1, 1)
+            halign: 'left'
+            valign: 'middle'
+
+        MDCheckbox:
+            size_hint: [None, None]
+            size: dp(30), dp(30)
+            color: (1, 1, 1, 1)
+            active_color: (1, 1, 1, 1)
+            pos_hint: {'center_y': 0.5}
+            on_state:
+                app.toggle_parameter('Boia ' + root.codigo_boia, 'Swell', self.state)
+
+
+<MaregrafoConfig@BoxLayout>:
+    codigo_maregrafo: ""
+    orientation: 'vertical'
+    size_hint_y: None
+    height: self.minimum_height
+    padding: dp(10)
+    spacing: dp(10)
+    canvas.before:
+        Color:
+            rgba: (0.29, 0.02, 0.61, 1)  # Cor #4A049C
+        RoundedRectangle:
+            size: self.size
+            pos: self.pos
+            radius: [dp(10)]
+
+    Label:
+        text: "Marégrafo "
+        font_size: "20sp"
+        color: (1, 1, 1, 1)  # Branco
+        bold: True
+        halign: 'left'
+        valign: 'middle'
+
+    BoxLayout:
+        orientation: 'horizontal'
+        size_hint_y: None
+        height: dp(40)
+        spacing: dp(10)
+
+        Label:
+            text: "Nível do Mar"
+            font_size: "16sp"
+            color: (1, 1, 1, 1)
+            halign: 'left'
+            valign: 'middle'
+
+        MDCheckbox:
+            size_hint: [None, None]
+            size: dp(30), dp(30)
+            color: (1, 1, 1, 1)
+            active_color: (1, 1, 1, 1)
+            pos_hint: {'center_y': 0.5}
+            on_state:
+                app.toggle_parameter('Marégrafo ' + root.codigo_maregrafo, 'Nível do Mar', self.state)
+
+<EstacaoMeteorologicaConfig@BoxLayout>:
+    codigo_estacao: ""
+    orientation: 'vertical'
+    size_hint_y: None
+    height: self.minimum_height
+    padding: dp(10)
+    spacing: dp(10)
+    canvas.before:
+        Color:
+            rgba: (0.02, 0.61, 0.29, 1)  # Cor #049C4A
+        RoundedRectangle:
+            size: self.size
+            pos: self.pos
+            radius: [dp(10)]
+
+    Label:
+        text: "Estação Meteorológica " + root.codigo_estacao
+        font_size: "20sp"
+        color: (1, 1, 1, 1)  # Branco
+        bold: True
+        halign: 'left'
+        valign: 'middle'
+
+    BoxLayout:
+        orientation: 'horizontal'
+        size_hint_y: None
+        height: dp(40)
+        spacing: dp(10)
+
+        Label:
+            text: "Ventos"
+            font_size: "16sp"
+            color: (1, 1, 1, 1)  # Branco
+            halign: 'left'
+            valign: 'middle'
+
+        MDCheckbox:
+            size_hint: [None, None]
+            size: dp(30), dp(30)
+            color: (1, 1, 1, 1)
+            active_color: (1, 1, 1, 1)
+            pos_hint: {'center_y': 0.5}
+            on_state:
+                app.toggle_parameter('Estação Meteorológica ' + root.codigo_estacao, 'Ventos', self.state)
+                
+<OndografoConfig@BoxLayout>:
+    nome: ""
+    orientation: 'vertical'
+    size_hint_y: None
+    height: self.minimum_height
+    padding: dp(10)
+    spacing: dp(10)
+    canvas.before:
+        Color:
+            rgba: (0.61, 0.02, 0.29, 1)  # Cor #9C044A
+        RoundedRectangle:
+            size: self.size
+            pos: self.pos
+            radius: [dp(10)]
+
+    Label:
+        text: "Ondógrafo " + root.nome
+        font_size: "20sp"
+        color: (1, 1, 1, 1)  # Branco
+        bold: True
+        halign: 'left'
+        valign: 'middle'
+
+    BoxLayout:
+        orientation: 'horizontal'
+        size_hint_y: None
+        height: dp(40)
+        spacing: dp(10)
+
+        Label:
+            text: "Altura Significativa de Onda"
+            font_size: "16sp"
+            color: (1, 1, 1, 1)
+            halign: 'left'
+            valign: 'middle'
+
+        MDCheckbox:
+            size_hint: [None, None]
+            size: dp(30), dp(30)
+            color: (1, 1, 1, 1)
+            active_color: (1, 1, 1, 1)
+            pos_hint: {'center_y': 0.5}
+            on_state:
+                app.toggle_parameter('Ondógrafo ' + root.nome, 'Altura Significativa de Onda', self.state)
+
+    BoxLayout:
+        orientation: 'horizontal'
+        size_hint_y: None
+        height: dp(40)
+        spacing: dp(10)
+
+        Label:
+            text: "Altura Máxima"
+            font_size: "16sp"
+            color: (1, 1, 1, 1)
+            halign: 'left'
+            valign: 'middle'
+
+        MDCheckbox:
+            size_hint: [None, None]
+            size: dp(30), dp(30)
+            color: (1, 1, 1, 1)
+            active_color: (1, 1, 1, 1)
+            pos_hint: {'center_y': 0.5}
+            on_state:
+                app.toggle_parameter('Ondógrafo ' + root.nome, 'Altura Máxima', self.state)
+
+    BoxLayout:
+        orientation: 'horizontal'
+        size_hint_y: None
+        height: dp(40)
+        spacing: dp(10)
+
+        Label:
+            text: "Período"
+            font_size: "16sp"
+            color: (1, 1, 1, 1)
+            halign: 'left'
+            valign: 'middle'
+
+        MDCheckbox:
+            size_hint: [None, None]
+            size: dp(30), dp(30)
+            color: (1, 1, 1, 1)
+            active_color: (1, 1, 1, 1)
+            pos_hint: {'center_y': 0.5}
+            on_state:
+                app.toggle_parameter('Ondógrafo ' + root.nome, 'Período', self.state)
