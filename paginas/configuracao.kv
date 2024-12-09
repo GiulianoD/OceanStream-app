@@ -1,77 +1,96 @@
 #:kivy 2.3.0
+#:import utils kivy.utils
+#:import dp kivy.metrics.dp
+
 <Configuracao>:
+    FloatLayout:
+        # Adicionando uma imagem de fundo usando canvas
+        canvas.before:
+            Color:
+                rgba: 1, 1, 1, 1
+            Rectangle:
+                source: 'res/gradient.png'  # Nome do arquivo da imagem
+                pos: self.pos
+                size: self.size
+
     BoxLayout:
         orientation: 'vertical'
+        size_hint: (1, 1)
 
-        # Header fixo no topo
-        BoxLayout:
-            size_hint_y: None
-            height: dp(56)
-            padding: [dp(10), dp(10)]
-            canvas.before:
-                Color:
-                    rgba: (0.02, 0.58, 0.61, 1)  # Cor #04949C
-                Rectangle:
-                    size: self.size
-                    pos: self.pos
+        # Header
+        FloatLayout:
+            size_hint: (1, None)
+            height: dp(80)
 
+            # Botão de voltar no canto superior esquerdo
             MDIconButton:
                 icon: "arrow-left"
                 size_hint: (None, None)
-                size: (dp(36), dp(36))
+                size: dp(36), dp(36)
+                pos_hint: {"left": 1, "top": 1}
                 theme_text_color: "Custom"
                 text_color: (1, 1, 1, 1)
                 on_release:
                     app.gerenciador.current = 'overview'
 
             Label:
-                text: "Configurar meu Overview"
-                font_size: "18sp"
-                color: (1, 1, 1, 1)  # Branco
+                text: 'Configurar meu Overview'
+                font_size: 30
                 bold: True
-                halign: 'left'
-                valign: 'middle'
+                color: utils.get_color_from_hex('#FFFFFF')
+                size_hint: (1, None)
+                pos_hint: {"center_x": 0.5, "top": 1}
+                halign: "center"
+                valign: "middle"
 
-        ScrollView:
-            BoxLayout:
-                orientation: 'vertical'
-                padding: dp(10)
-                spacing: dp(10)
-                size_hint_y: None
-                height: self.minimum_height
+        # Card branco abaixo ocupando o espaço restante
+        MDCard:
+            size_hint: (1, 1)
+            elevation: 4
+            radius: [60, 60, 0, 0]
+            md_bg_color: utils.get_color_from_hex('#FFFFFF')
+            pos_hint: {'center_x': 0.5}  # Centraliza horizontalmente
 
-                # Caixa para Boia 04
-                BoiaConfig:
-                    codigo_boia: "04"
+            ScrollView:
+                BoxLayout:
+                    orientation: 'vertical'
+                    padding: dp(10)
+                    spacing: dp(10)
+                    size_hint_y: None
+                    height: self.minimum_height
 
-                # Caixa para Boia 08
-                BoiaConfig:
-                    codigo_boia: "08"
+                    # Caixa para Boia 04
+                    BoiaConfig:
+                        codigo_boia: "04"
 
-                # Caixa para Boia 10
-                BoiaConfig:
-                    codigo_boia: "10"
+                    # Caixa para Boia 08
+                    BoiaConfig:
+                        codigo_boia: "08"
 
-                # Caixa para Marégrafo
-                MaregrafoConfig:
-                    codigo_maregrafo: "01"
+                    # Caixa para Boia 10
+                    BoiaConfig:
+                        codigo_boia: "10"
 
-                # Caixa para Estação Meteorológica
-                EstacaoMeteorologicaConfig:
-                    codigo_estacao: "01"
+                    # Caixa para Marégrafo
+                    MaregrafoConfig:
+                        codigo_maregrafo: "01"
 
-                # Ondógrafos
-                OndografoConfig:
-                    nome: "Píer II"
+                    # Caixa para Estação Meteorológica
+                    EstacaoMeteorologicaConfig:
+                        codigo_estacao: "01"
 
-                OndografoConfig:
-                    nome: "TGL"
+                    # Ondógrafos
+                    OndografoConfig:
+                        nome: "Píer II"
 
-                OndografoConfig:
-                    nome: "TPD"
+                    OndografoConfig:
+                        nome: "TGL"
 
-                OndografoConfig:
-                    nome: "TPM"
+                    OndografoConfig:
+                        nome: "TPD"
+
+                    OndografoConfig:
+                        nome: "TPM"
 
 <BoiaConfig@BoxLayout>:
     codigo_boia: ""
