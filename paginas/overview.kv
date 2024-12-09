@@ -9,121 +9,33 @@
     halign: 'center'
 
 <Overview>:
-    BoxLayout:
-        orientation: 'vertical'
-        size: root.width, root.height
-        padding: [0,0,0,50]
-
+    FloatLayout:
+        # Adicionando uma imagem de fundo usando canvas
         canvas.before:
             Color:
-                rgba: utils.get_color_from_hex('#013336')
+                rgba: 1, 1, 1, 1
             Rectangle:
-                size: self.size
+                source: 'res/gradient.png'  # Nome do arquivo da imagem
                 pos: self.pos
+                size: self.size
+    BoxLayout:
+        orientation: 'vertical'
+        size_hint: (1, 1)
 
         # Header
         Label:
             text: 'Porto de Tubarão - Overview'
-            font_size: 24
+            font_size: 30
             bold: True
             color: utils.get_color_from_hex('#FFFFFF')
             size_hint: (1, None)
-            height: 60
+            height: 80
             pos_hint: {'top': 1, 'x': 0}
-        BoxLayout:
-            orientation: 'vertical'
-            size: root.width, root.height
-            # Quadro Operacional
-            BoxLayout:
-                orientation: 'horizontal'
-                size_hint: (1, None)
-                height: 50
-                canvas.before:
-                    Color:
-                        rgba: utils.get_color_from_hex('#04779C')
-                    RoundedRectangle:
-                        size: self.size
-                        pos: self.pos
-                        radius: [10, 10, 10, 10]
 
-                Label:
-                    text: 'Quadro Operacional'
-                    font_size: 18
-                    color: utils.get_color_from_hex('#FFFFFF')
-                    size_hint: (1, 1)
-                
-                # Placeholder para icone
-                Widget:
-                    size_hint: None, None
-                    width: 24
-                    height: 24
-                    canvas.before:
-                        Color:
-                            rgba: 1, 1, 1, 1
-                        Rectangle:
-                            size: 24, 24
-                            pos: self.pos
-
-            # Outras caixas de dados
-            BoxLayout:
-                orientation: 'horizontal'
-                size_hint: (1, None)
-                height: 50
-
-                # Caixa para 'Estação M.'
-                BoxLayout:
-                    orientation: 'vertical'
-                    padding: [10, 10]
-                    canvas.before:
-                        Color:
-                            rgba: utils.get_color_from_hex('#2AAB68')
-                        RoundedRectangle:
-                            size: self.size
-                            pos: self.pos
-                            radius: [10, 10, 10, 10]
-                    
-                    Label:
-                        text: 'Estação M.'
-                        font_size: 18
-                        color: utils.get_color_from_hex('#FFFFFF')
-
-                    Label:
-                        text: 'Última atualização há 1 dia'
-                        font_size: 12
-                        color: utils.get_color_from_hex('#FFFFFF')
-
-                # Caixa para 'Marégrafo'
-                BoxLayout:
-                    orientation: 'vertical'
-                    padding: [10, 10]
-                    canvas.before:
-                        Color:
-                            rgba: utils.get_color_from_hex('#04779C')
-                        RoundedRectangle:
-                            size: self.size
-                            pos: self.pos
-                            radius: [10, 10, 10, 10]
-
-                    Label:
-                        text: 'Marégrafo'
-                        font_size: 18
-                        color: utils.get_color_from_hex('#FFFFFF')
-
-            # Caixa inferior com "Boia - 10"
-            BoxLayout:
-                orientation: 'horizontal'
-                size_hint: (1, None)
-                height: 50
-                padding: [10, 10]
-                canvas.before:
-                    Color:
-                        rgba: utils.get_color_from_hex('#2AAB68')
-                    RoundedRectangle:
-                        size: self.size
-                        pos: self.pos
-                        radius: [10, 10, 10, 10]
-
-                Label:
-                    text: 'Boia - 10'
-                    font_size: 18
-                    color: utils.get_color_from_hex('#FFFFFF')
+        # Card branco abaixo ocupando o espaço restante
+        MDCard:
+            size_hint: (1, 1)
+            elevation: 4
+            radius: [60, 60, 0, 0]
+            md_bg_color: utils.get_color_from_hex('#FFFFFF')
+            pos_hint: {'center_x': 0.5}  # Centraliza horizontalmente
