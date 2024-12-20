@@ -1,13 +1,13 @@
 from kivymd.app import MDApp
+from kivymd.uix.card import MDCard
 from kivy.uix.screenmanager import ScreenManager, Screen
-from kivy.properties import ObjectProperty
 from kivy.uix.label import Label
+from kivy.properties import ObjectProperty
 from kivy.lang import Builder
 from kivy.clock import Clock
 from plyer import storagepath
 from datetime import datetime
 import requests
-import json
 import os
 import jwt
 from kivy.config import Config
@@ -67,7 +67,33 @@ Builder.load_file('paginas/login.kv')
 Builder.load_file('paginas/configuracao.kv')
 
 class Overview(Screen):
-    pass
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.cards = []  # Lista para armazenar os widgets dos novos cards
+        self.card_active = False  # Variável para ativar/desativar os novos cards
+
+    def toggle_cards(self):
+        altura_card = 120
+        card_container = self.ids.card_container
+        if self.card_active:  # Remover os cards se estiverem ativos
+            for card in self.cards:
+                card_container.remove_widget(card)
+            self.cards.clear()
+        else:  # Adicionar novos cards
+            for i in range(5):  # Exemplo: Adicionar 3 novos cards
+                new_card = MDCard(
+                    size_hint=(1, None),
+                    height=altura_card,
+                    elevation=2,
+                    radius=[20, 20, 20, 20],
+                    md_bg_color=(0.9, 0.9, 0.9, 1),
+                )
+                new_card.add_widget(Label(text=f"Card {i+1}", color=(0, 0, 0, 1)))
+                self.cards.append(new_card)
+                card_container.add_widget(new_card)
+        self.card_active = not self.card_active
+        # Ajustar a altura do container com base nos widgets adicionados
+        card_container.height = len(self.cards) * (altura_card+5)  # Altura card + espaçamento
 
 class Alertas(Screen):
     pass

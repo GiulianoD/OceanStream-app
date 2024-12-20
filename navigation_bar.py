@@ -51,6 +51,7 @@ class NavigationBar(MDBoxLayout):
             theme_text_color="Custom",
             text_color=(0.02, 0.58, 0.61, 1), # hex 04949C
             pos_hint={'center_x': 0.5},
+            # pos=(20000, dp(1000)),  # Posição mais abaixo no layout
             on_release=self.toggle_toolbar
         )
 
