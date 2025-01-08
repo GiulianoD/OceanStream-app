@@ -1,4 +1,5 @@
 from kivymd.app import MDApp
+from kivymd.uix.button import MDRectangleFlatButton
 from kivymd.uix.card import MDCard
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.label import Label
@@ -61,6 +62,25 @@ def is_token_valid(token):
 
 ### Telas
 
+# from kivy.uix.boxlayout import BoxLayout
+from kivy.properties import StringProperty, BooleanProperty, NumericProperty
+
+class CardWidget(MDCard):
+    card_id = NumericProperty(0)
+    title = StringProperty("")
+    active = BooleanProperty(False)
+
+    def __init__(self, card_id, title, **kwargs):
+        super().__init__(**kwargs)
+        self.card_id = card_id
+        self.title = title
+        self.active = False
+
+    def update_card_state(self):
+        # Atualiza o visual do card com base em seu estado ativo/inativo
+        self.md_bg_color = (0.2, 0.8, 0.2, 1) if self.active else (0.9, 0.9, 0.9, 1)
+
+
 Builder.load_file('paginas/overview.kv')
 Builder.load_file('paginas/alertas.kv')
 Builder.load_file('paginas/login.kv')
@@ -69,31 +89,67 @@ Builder.load_file('paginas/configuracao.kv')
 class Overview(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.cards = []  # Lista para armazenar os widgets dos novos cards
-        self.card_active = False  # Variável para ativar/desativar os novos cards
+        self.cards = []  # Lista para armazenar os widgets dos cards
+        self.card_configs = [
+            {"text": "Card 1: Informações X", "active": True},
+            {"text": "Card 2: Detalhes Y", "active": True},
+            {"text": "Card 3: Notificações Z", "active": False},
+            # Adicione mais cards conforme necessário
+        ]
 
-    def toggle_cards(self):
-        altura_card = 120
+    def toggle_card(self, card_index):
+        """
+        Ativa ou desativa um card individualmente com base no índice.
+        """
+        card_config = self.card_configs[card_index]
         card_container = self.ids.card_container
-        if self.card_active:  # Remover os cards se estiverem ativos
-            for card in self.cards:
-                card_container.remove_widget(card)
-            self.cards.clear()
-        else:  # Adicionar novos cards
-            for i in range(5):  # Exemplo: Adicionar 3 novos cards
-                new_card = MDCard(
-                    size_hint=(1, None),
-                    height=altura_card,
-                    elevation=2,
-                    radius=[20, 20, 20, 20],
-                    md_bg_color=(0.9, 0.9, 0.9, 1),
-                )
-                new_card.add_widget(Label(text=f"Card {i+1}", color=(0, 0, 0, 1)))
-                self.cards.append(new_card)
-                card_container.add_widget(new_card)
-        self.card_active = not self.card_active
-        # Ajustar a altura do container com base nos widgets adicionados
-        card_container.height = len(self.cards) * (altura_card+5)  # Altura card + espaçamento
+        card = self.cards[card_index]
+        
+        # Atualiza o estado do card
+        card_config["active"] = not card_config["active"]
+        
+        # Mostra ou esconde o card conforme o estado
+        card.opacity = 1 if card_config["active"] else 0
+        card.disabled = not card_config["active"]
+
+    def populate_cards(self):
+        """
+        Adiciona os cards ao container com base nas configurações.
+        """
+        card_container = self.ids.card_container
+        card_container.clear_widgets()  # Limpa os cards existentes
+        self.cards.clear()
+
+        for idx, config in enumerate(self.card_configs):
+            if not config["active"]:
+                continue
+            new_card = MDCard(
+                size_hint=(1, None),
+                height=120,
+                elevation=2,
+                radius=[20, 20, 20, 20],
+                md_bg_color=(0.9, 0.9, 0.9, 1),
+            )
+            card_label = Label(
+                text=config["text"],
+                color=(0, 0, 0, 1),
+                size_hint=(1, 1),
+            )
+            toggle_button = MDRectangleFlatButton(
+                text="Desativar",
+                size_hint=(None, None),
+                size=(150, 40),
+                pos_hint={"center_x": 0.5, "center_y": 0.5},
+                on_release=lambda btn, i=idx: self.toggle_card(i),
+            )
+            new_card.add_widget(card_label)
+            new_card.add_widget(toggle_button)
+
+            self.cards.append(new_card)
+            card_container.add_widget(new_card)
+    
+    def on_enter(self):
+        self.populate_cards()
 
 class Alertas(Screen):
     pass
@@ -164,7 +220,7 @@ class OceanStream(MDApp):
 
     def build(self):
         self.gerenciador = GerenciadorTelas()
-        
+
         # Adiciona as telas ao ScreenManager
         self.gerenciador.add_widget(TelaCarregamento(name='load'))
         self.gerenciador.add_widget(Overview(name='overview'))
