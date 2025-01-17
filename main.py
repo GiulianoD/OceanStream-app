@@ -1,17 +1,17 @@
 from kivymd.app import MDApp
 from kivymd.uix.button import MDRectangleFlatButton
 from kivymd.uix.card import MDCard
+from kivy.clock import Clock
+from kivy.config import Config
+from kivy.lang import Builder
+from kivy.properties import ObjectProperty, StringProperty, BooleanProperty, NumericProperty
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.label import Label
-from kivy.properties import ObjectProperty
-from kivy.lang import Builder
-from kivy.clock import Clock
 from plyer import storagepath
 from datetime import datetime
 import requests
 import os
 import jwt
-from kivy.config import Config
 Config.set('graphics', 'multisamples', '0')
 
 from navigation_bar import NavigationBar  # Importando a barra de navegação
@@ -62,9 +62,6 @@ def is_token_valid(token):
 
 ### Telas
 
-# from kivy.uix.boxlayout import BoxLayout
-from kivy.properties import StringProperty, BooleanProperty, NumericProperty
-
 class CardWidget(MDCard):
     card_id = NumericProperty(0)
     title = StringProperty("")
@@ -86,31 +83,77 @@ Builder.load_file('paginas/alertas.kv')
 Builder.load_file('paginas/login.kv')
 Builder.load_file('paginas/configuracao.kv')
 
+cartoes = [
+    {"active": True, "text": "ADCP - Boia 04"},
+    {"active": True, "text": "ADCP - Boia 08"},
+    {"active": True, "text": "ADCP - Boia 10"},
+    {"active": True, "text": "Ondógrafo - Píer II"},
+    {"active": True, "text": "Ondógrafo - TGL"},
+    {"active": True, "text": "Ondógrafo - TPD"},
+    {"active": True, "text": "Ondógrafo - TPM"},
+    {"active": True, "text": "Marégrafo"},
+    {"active": True, "text": "Estação Meteorológica"}
+]
+
 class Overview(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.cards = []  # Lista para armazenar os widgets dos cards
-        self.card_configs = [
-            {"text": "Card 1: Informações X", "active": True},
-            {"text": "Card 2: Detalhes Y", "active": True},
-            {"text": "Card 3: Notificações Z", "active": False},
-            # Adicione mais cards conforme necessário
-        ]
+        self.card_configs = cartoes
 
     def toggle_card(self, card_index):
         """
-        Ativa ou desativa um card individualmente com base no índice.
+        Minimiza um card e reorganiza os cartões visíveis.
         """
         card_config = self.card_configs[card_index]
-        card_container = self.ids.card_container
         card = self.cards[card_index]
-        
-        # Atualiza o estado do card
+
+        # Alterna entre maximizado e minimizado
         card_config["active"] = not card_config["active"]
-        
-        # Mostra ou esconde o card conforme o estado
-        card.opacity = 1 if card_config["active"] else 0
-        card.disabled = not card_config["active"]
+
+        if card_config["active"]:
+            # Maximiza o card: retorna ao tamanho original e conteúdo original
+            card.clear_widgets()
+            card.add_widget(
+                Label(
+                    text=card_config["text"],
+                    color=(0, 0, 0, 1),
+                    size_hint=(1, 1),
+                )
+            )
+            card.add_widget(
+                MDRectangleFlatButton(
+                    text="Minimizar",
+                    size_hint=(None, None),
+                    size=(150, 40),
+                    pos_hint={"center_x": 0.5, "center_y": 0.5},
+                    on_release=lambda btn, i=card_index: self.toggle_card(i),
+                )
+            )
+            card.height = 120
+        else:
+            # Minimiza o card: substitui o conteúdo pelo indicador de minimização
+            card.clear_widgets()
+            card.add_widget(
+                Label(
+                    text=card_config["text"],
+                    color=(0.5, 0.5, 0.5, 1),
+                    size_hint=(1, 1),
+                )
+            )
+            card.add_widget(
+                MDRectangleFlatButton(
+                    text="Maximizar",
+                    size_hint=(None, None),
+                    size=(150, 40),
+                    pos_hint={"center_x": 0.5, "center_y": 0.5},
+                    on_release=lambda btn, i=card_index: self.toggle_card(i),
+                )
+            )
+            card.height = 60
+
+        # Reorganiza os cartões
+        self.reorganize_cards()
 
     def populate_cards(self):
         """
@@ -120,34 +163,57 @@ class Overview(Screen):
         card_container.clear_widgets()  # Limpa os cards existentes
         self.cards.clear()
 
+        # Gera os cards
         for idx, config in enumerate(self.card_configs):
-            if not config["active"]:
-                continue
             new_card = MDCard(
                 size_hint=(1, None),
-                height=120,
+                height=120 if config["active"] else 60,
                 elevation=2,
                 radius=[20, 20, 20, 20],
                 md_bg_color=(0.9, 0.9, 0.9, 1),
             )
-            card_label = Label(
-                text=config["text"],
-                color=(0, 0, 0, 1),
-                size_hint=(1, 1),
-            )
+
+            # Adiciona o conteúdo inicial (baseado no estado)
+            if config["active"]:
+                new_card.add_widget(
+                    Label(
+                        text=config["text"],
+                        color=(0, 0, 0, 1),
+                        size_hint=(1, 1),
+                    )
+                )
+                button_text = "Minimizar"
+            else:
+                new_card.add_widget(
+                    Label(
+                        text=config["text"],
+                        color=(0.5, 0.5, 0.5, 1),
+                        size_hint=(1, 1),
+                    )
+                )
+                button_text = "Maximizar"
+
             toggle_button = MDRectangleFlatButton(
-                text="Desativar",
+                text=button_text,
                 size_hint=(None, None),
                 size=(150, 40),
                 pos_hint={"center_x": 0.5, "center_y": 0.5},
                 on_release=lambda btn, i=idx: self.toggle_card(i),
             )
-            new_card.add_widget(card_label)
             new_card.add_widget(toggle_button)
 
             self.cards.append(new_card)
             card_container.add_widget(new_card)
-    
+
+    def reorganize_cards(self):
+        """
+        Reorganiza os cartões no contêiner para refletir o estado atual.
+        """
+        card_container = self.ids.card_container
+        card_container.clear_widgets()
+        for card in self.cards:
+            card_container.add_widget(card)
+
     def on_enter(self):
         self.populate_cards()
 
@@ -254,7 +320,7 @@ class OceanStream(MDApp):
 
     def on_screen_change(self, instance, value):
         # Oculta a toolbar se a tela atual for 'login' ou 'configuracao'
-        if value in ['login', 'configuracao']:
+        if value in ['login', 'configuracao', 'load']:
             self.navigation_bar.toolbar.opacity = 0
             self.navigation_bar.toolbar.disabled = True
         else:

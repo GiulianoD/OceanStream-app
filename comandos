@@ -9,7 +9,7 @@ Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 ~ instruções para preparar o ambiente virtual de desenvolvimento:
 
 com o terminal aberto no diretório raiz do projeto, criar o ambiente virtual:
-python3 -m venv venv
+python -m venv venv
 
 ativar o ambiente virtual: 
 venv/Scripts/Activate.ps1

@@ -35,7 +35,7 @@
             # Card branco principal
             MDCard:
                 id: main_card
-                padding: [0, 60, 0, 5]
+                padding: [0, 25, 0, 5]
                 size_hint: (1, 1)
                 elevation: 4
                 radius: [60, 60, 0, 0]
@@ -50,12 +50,6 @@
                         id: card_container
                         orientation: 'vertical'
                         spacing: 5
-                        padding: 20
+                        padding: 50
                         size_hint_y: None
                         height: self.minimum_height  # Ajusta a altura conforme os widgets adicionados
-                        MDRectangleFlatButton:
-                            text: "Ativar/Desativar Cards"
-                            size_hint: (None, None)
-                            size: 200, 50
-                            pos_hint: {"center_x": 0.5, "center_y": 0.1}
-                            on_release: root.toggle_cards()
