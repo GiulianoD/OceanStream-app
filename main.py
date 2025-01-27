@@ -9,6 +9,7 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.label import Label
 from plyer import storagepath
 from datetime import datetime
+import json
 import requests
 import os
 import jwt
@@ -60,6 +61,53 @@ def is_token_valid(token):
         print(f"Erro ao verificar token: {str(e)}")
         return False
 
+### JSON
+
+def ler_arquivo_json(caminho_arquivo='dados.json'):
+    """
+    Lê dados de um arquivo JSON.
+
+    Args:
+        caminho_arquivo (str): Caminho para o arquivo JSON.
+
+    Returns:
+        dict | list: Dados carregados do arquivo JSON.
+                     Retorna None se ocorrer um erro.
+    """
+    try:
+        with open(caminho_arquivo, "r", encoding="utf-8") as arquivo:
+            dados = json.load(arquivo)
+        print("JSON carregado com sucesso!")
+        return dados
+    except FileNotFoundError:
+        print(f"Erro: O arquivo '{caminho_arquivo}' não foi encontrado.")
+    except json.JSONDecodeError as e:
+        print(f"Erro ao decodificar o JSON: {e}")
+    return None
+
+def salvar_arquivo_json(data, caminho_arquivo='dados.json'):
+    """
+    Salva um dicionário em um arquivo JSON.
+    
+    :param data: Dicionário a ser salvo.
+    :param file_path: Caminho e nome do arquivo JSON.
+    """
+    try:
+        with open(caminho_arquivo, "w", encoding="utf-8") as file:
+            json.dump(data, file, ensure_ascii=False, indent=4)
+        print(f"Dicionário salvo como JSON em: {caminho_arquivo}")
+    except Exception as e:
+        print(f"Erro ao salvar JSON: {e}")
+dados = ler_arquivo_json()
+
+def salvar_cards(dict):
+    dict_completo = {
+        "nome": "Overview - Cards",
+        "atualizado_em": str(datetime.now()),
+        "cartoes": dict
+    }
+    salvar_arquivo_json(dict_completo)
+
 ### Telas
 
 class CardWidget(MDCard):
@@ -83,35 +131,38 @@ Builder.load_file('paginas/alertas.kv')
 Builder.load_file('paginas/login.kv')
 Builder.load_file('paginas/configuracao.kv')
 
-cartoes = [
-    {"active": True, "text": "ADCP - Boia 04"},
-    {"active": True, "text": "ADCP - Boia 08"},
-    {"active": True, "text": "ADCP - Boia 10"},
-    {"active": True, "text": "Ondógrafo - Píer II"},
-    {"active": True, "text": "Ondógrafo - TGL"},
-    {"active": True, "text": "Ondógrafo - TPD"},
-    {"active": True, "text": "Ondógrafo - TPM"},
-    {"active": True, "text": "Marégrafo"},
-    {"active": True, "text": "Estação Meteorológica"}
-]
 
 class Overview(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.cards = []  # Lista para armazenar os widgets dos cards
-        self.card_configs = cartoes
+        self.card_configs = dados['cartoes']
 
-    def toggle_card(self, card_index):
+    def toggle_card(self, card_index):  
         """
         Minimiza um card e reorganiza os cartões visíveis.
         """
+
+        # encontra o indice entre os cards ativos
+        indice_ref = int(card_index)
+        indice_geral = 0
+        indice_active = indice_ref
+
+        while indice_geral<indice_ref:
+            if not self.card_configs[indice_geral]['active']:
+                indice_active-=1
+            indice_geral+=1
+
+        print(f'Indice geral: {card_index}')
+        print(f'Indice ativo: {indice_active}')
+
         card_config = self.card_configs[card_index]
-        card = self.cards[card_index]
+        card = self.cards[indice_active]
 
         # Alterna entre maximizado e minimizado
-        card_config["active"] = not card_config["active"]
+        card_config["maximize"] = not card_config["maximize"]
 
-        if card_config["active"]:
+        if card_config["maximize"]:
             # Maximiza o card: retorna ao tamanho original e conteúdo original
             card.clear_widgets()
             card.add_widget(
@@ -155,56 +206,6 @@ class Overview(Screen):
         # Reorganiza os cartões
         self.reorganize_cards()
 
-    def populate_cards(self):
-        """
-        Adiciona os cards ao container com base nas configurações.
-        """
-        card_container = self.ids.card_container
-        card_container.clear_widgets()  # Limpa os cards existentes
-        self.cards.clear()
-
-        # Gera os cards
-        for idx, config in enumerate(self.card_configs):
-            new_card = MDCard(
-                size_hint=(1, None),
-                height=120 if config["active"] else 60,
-                elevation=2,
-                radius=[20, 20, 20, 20],
-                md_bg_color=(0.9, 0.9, 0.9, 1),
-            )
-
-            # Adiciona o conteúdo inicial (baseado no estado)
-            if config["active"]:
-                new_card.add_widget(
-                    Label(
-                        text=config["text"],
-                        color=(0, 0, 0, 1),
-                        size_hint=(1, 1),
-                    )
-                )
-                button_text = "Minimizar"
-            else:
-                new_card.add_widget(
-                    Label(
-                        text=config["text"],
-                        color=(0.5, 0.5, 0.5, 1),
-                        size_hint=(1, 1),
-                    )
-                )
-                button_text = "Maximizar"
-
-            toggle_button = MDRectangleFlatButton(
-                text=button_text,
-                size_hint=(None, None),
-                size=(150, 40),
-                pos_hint={"center_x": 0.5, "center_y": 0.5},
-                on_release=lambda btn, i=idx: self.toggle_card(i),
-            )
-            new_card.add_widget(toggle_button)
-
-            self.cards.append(new_card)
-            card_container.add_widget(new_card)
-
     def reorganize_cards(self):
         """
         Reorganiza os cartões no contêiner para refletir o estado atual.
@@ -214,8 +215,64 @@ class Overview(Screen):
         for card in self.cards:
             card_container.add_widget(card)
 
+    def genereate_cards(self):
+        """
+        Recria os cards no container com base nos parâmetros ativos em self.selected_parameters.
+        """
+        print('Recriando cartões na visão geral...')
+        app = MDApp.get_running_app()  # Acessa a instância do aplicativo
+        selected_parameters = app.selected_parameters  # Obtém os parâmetros selecionados
+        card_container = self.ids.card_container
+
+        # Limpa widgets existentes
+        card_container.clear_widgets()
+        self.cards.clear()
+
+        # Identificar variáveis principais e verificar se possuem conteúdo
+        active_parameters = {key: value for key, value in selected_parameters.items() if value}
+        inactive_parameters = {key: value for key, value in selected_parameters.items() if not value}
+
+        # print(selected_parameters)
+        print("Parâmetros com conteúdo (ativos):", active_parameters)
+        print("Parâmetros sem conteúdo (inativos):", inactive_parameters)
+
+        # Filtra e recria os cartões ativos
+        for idx, config in enumerate(self.card_configs):
+            equipment = config.get("text")  # Usa o texto como identificador do equipamento
+
+            print(equipment)
+            # is_active = equipment in selected_parameters
+            is_active = any(equipment in key for key in active_parameters)
+            self.card_configs[idx]['active'] = is_active
+            if not is_active:
+                # parent_widget.remove_widget(card_widget)
+                # selected_parameters.pop(equipment, None)
+                continue
+
+            # Configura os widgets do cartão
+            new_card = MDCard(
+                size_hint=(1, None),
+                height=120,
+                elevation=2,
+                radius=[20, 20, 20, 20],
+            )
+            new_card.add_widget(Label(text=config["text"], color=(0, 0, 0, 1)))
+            new_card.add_widget(
+                MDRectangleFlatButton(
+                    text="Minimizar",
+                    size_hint=(None, None),
+                    size=(150, 40),
+                    pos_hint={"center_x": 0.5, "center_y": 0.5},
+                    on_release=lambda btn, i=idx: self.toggle_card(i),
+                )
+            )
+            self.cards.append(new_card)
+            card_container.add_widget(new_card)
+        salvar_cards(self.card_configs)
+
     def on_enter(self):
-        self.populate_cards()
+        print('overview on_enter')
+        self.genereate_cards()
 
 class Alertas(Screen):
     pass
@@ -317,6 +374,10 @@ class OceanStream(MDApp):
 
         # Verifica os parâmetros selecionados
         print(f"Parâmetros selecionados para {equipment}: {self.selected_parameters[equipment]}")
+        
+        app = MDApp.get_running_app()
+        if app.gerenciador.current == "overview":
+            app.gerenciador.get_screen("overview").genereate_cards()
 
     def on_screen_change(self, instance, value):
         # Oculta a toolbar se a tela atual for 'login' ou 'configuracao'
