@@ -50,6 +50,7 @@
             radius: [60, 60, 0, 0]
             md_bg_color: utils.get_color_from_hex('#FFFFFF')
             pos_hint: {'center_x': 0.5}  # Centraliza horizontalmente
+            padding: [30, 30, 30, 0]
 
             ScrollView:
                 BoxLayout:
@@ -264,7 +265,7 @@
             radius: [dp(10)]
 
     Label:
-        text: "Marégrafo "
+        text: "Marégrafo"
         font_size: "20sp"
         color: (1, 1, 1, 1)  # Branco
         bold: True
@@ -309,7 +310,7 @@
             radius: [dp(10)]
 
     Label:
-        text: "Estação Meteorológica " + root.codigo_estacao
+        text: "Estação Meteorológica"
         font_size: "20sp"
         color: (1, 1, 1, 1)  # Branco
         bold: True

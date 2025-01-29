@@ -63,7 +63,7 @@ def is_token_valid(token):
 
 ### JSON
 
-def ler_arquivo_json(caminho_arquivo='dados.json'):
+def ler_arquivo_json(caminho_arquivo):
     """
     Lê dados de um arquivo JSON.
 
@@ -85,7 +85,7 @@ def ler_arquivo_json(caminho_arquivo='dados.json'):
         print(f"Erro ao decodificar o JSON: {e}")
     return None
 
-def salvar_arquivo_json(data, caminho_arquivo='dados.json'):
+def salvar_arquivo_json(data, caminho_arquivo):
     """
     Salva um dicionário em um arquivo JSON.
     
@@ -98,7 +98,6 @@ def salvar_arquivo_json(data, caminho_arquivo='dados.json'):
         print(f"Dicionário salvo como JSON em: {caminho_arquivo}")
     except Exception as e:
         print(f"Erro ao salvar JSON: {e}")
-dados = ler_arquivo_json()
 
 def salvar_cards(dict):
     dict_completo = {
@@ -106,7 +105,9 @@ def salvar_cards(dict):
         "atualizado_em": str(datetime.now()),
         "cartoes": dict
     }
-    salvar_arquivo_json(dict_completo)
+    salvar_arquivo_json(data=dict_completo, caminho_arquivo='data/cards.json')
+
+dados_cards = ler_arquivo_json(caminho_arquivo='data/cards.json')
 
 ### Telas
 
@@ -136,9 +137,9 @@ class Overview(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.cards = []  # Lista para armazenar os widgets dos cards
-        self.card_configs = dados['cartoes']
+        self.card_configs = dados_cards['cartoes']
 
-    def toggle_card(self, card_index):  
+    def toggle_card(self, card_index):
         """
         Minimiza um card e reorganiza os cartões visíveis.
         """
@@ -149,7 +150,8 @@ class Overview(Screen):
         indice_active = indice_ref
 
         while indice_geral<indice_ref:
-            if not self.card_configs[indice_geral]['active']:
+            # if not self.card_configs[indice_geral]['active']: # busca pelos inativos
+            if not list(self.card_configs[indice_geral]['selecionado']): # busca pelos inativos
                 indice_active-=1
             indice_geral+=1
 
@@ -224,31 +226,25 @@ class Overview(Screen):
         selected_parameters = app.selected_parameters  # Obtém os parâmetros selecionados
         card_container = self.ids.card_container
 
+        print(f'selected: {selected_parameters}')
         # Limpa widgets existentes
         card_container.clear_widgets()
         self.cards.clear()
 
         # Identificar variáveis principais e verificar se possuem conteúdo
         active_parameters = {key: value for key, value in selected_parameters.items() if value}
-        inactive_parameters = {key: value for key, value in selected_parameters.items() if not value}
-
-        # print(selected_parameters)
-        print("Parâmetros com conteúdo (ativos):", active_parameters)
-        print("Parâmetros sem conteúdo (inativos):", inactive_parameters)
 
         # Filtra e recria os cartões ativos
         for idx, config in enumerate(self.card_configs):
             equipment = config.get("text")  # Usa o texto como identificador do equipamento
 
-            print(equipment)
-            # is_active = equipment in selected_parameters
-            is_active = any(equipment in key for key in active_parameters)
-            self.card_configs[idx]['active'] = is_active
+            is_active = equipment in active_parameters
             if not is_active:
-                # parent_widget.remove_widget(card_widget)
-                # selected_parameters.pop(equipment, None)
+                self.card_configs[idx]['selecionado'] = []
                 continue
 
+            print(list(selected_parameters[equipment]))
+            self.card_configs[idx]['selecionado'] = list(selected_parameters[equipment])
             # Configura os widgets do cartão
             new_card = MDCard(
                 size_hint=(1, None),
@@ -313,6 +309,7 @@ class TelaLogin(Screen):
         self.ids.senha.text = ""
 
 class Configuracao(Screen):
+    # def on_enter
     pass
 
 # Tela de carregamento
@@ -339,7 +336,14 @@ class GerenciadorTelas(ScreenManager):
 class OceanStream(MDApp):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.selected_parameters = {}  # Dicionário para armazenar parâmetros selecionados por equipamento
+        self.selected_parameters = {} # Dicionário para armazenar parâmetros selecionados por equipamento
+
+        # preenche as checkboxes com base no arquivo
+        for equip in dados_cards['cartoes']:
+            if list(equip['selecionado']):
+                for param in list(equip['selecionado']):
+                    self.selected_parameters[equip['text']] = set()
+                    self.selected_parameters[equip['text']].add(param)
 
     def build(self):
         self.gerenciador = GerenciadorTelas()
