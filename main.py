@@ -3,16 +3,19 @@ from kivymd.uix.button import MDRectangleFlatButton
 from kivymd.uix.card import MDCard
 from kivy.clock import Clock
 from kivy.config import Config
+from kivy.graphics import Color, Rectangle
 from kivy.lang import Builder
 from kivy.properties import ObjectProperty, StringProperty, BooleanProperty, NumericProperty
-from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.label import Label
+from kivy.uix.screenmanager import ScreenManager, Screen
 from plyer import storagepath
 from datetime import datetime
 import json
 import requests
 import os
 import jwt
+
 Config.set('graphics', 'multisamples', '0')
 
 from navigation_bar import NavigationBar  # Importando a barra de navegação
@@ -63,17 +66,22 @@ def is_token_valid(token):
 
 ### JSON
 
+# Mapeamento de parâmetros para imagens
+PARAMETROS_IMAGENS = {
+    "Corrente Fundo":               "res/placeholder/cardicon/corrente_fundo.png",
+    "Corrente Meio":                "res/placeholder/cardicon/corrente_meio.png",
+    "Corrente Superfície":          "res/placeholder/cardicon/corrente_superficie.png",
+    "Ondas":                        "res/placeholder/cardicon/ondas.png",
+    "Sea":                          "res/placeholder/cardicon/sea.png",
+    "Swell":                        "res/placeholder/cardicon/swell.png",
+    "Nível do Mar":                 "res/placeholder/cardicon/nivel_mar.png",
+    "Ventos":                       "res/placeholder/cardicon/ventos.png",
+    "Altura Significativa de Onda": "res/placeholder/cardicon/altura_onda.png",
+    "Altura Máxima":                "res/placeholder/cardicon/altura_maxima.png",
+    "Período":                      "res/placeholder/cardicon/periodo.png",
+}
+
 def ler_arquivo_json(caminho_arquivo):
-    """
-    Lê dados de um arquivo JSON.
-
-    Args:
-        caminho_arquivo (str): Caminho para o arquivo JSON.
-
-    Returns:
-        dict | list: Dados carregados do arquivo JSON.
-                     Retorna None se ocorrer um erro.
-    """
     try:
         with open(caminho_arquivo, "r", encoding="utf-8") as arquivo:
             dados = json.load(arquivo)
@@ -86,12 +94,6 @@ def ler_arquivo_json(caminho_arquivo):
     return None
 
 def salvar_arquivo_json(data, caminho_arquivo):
-    """
-    Salva um dicionário em um arquivo JSON.
-    
-    :param data: Dicionário a ser salvo.
-    :param file_path: Caminho e nome do arquivo JSON.
-    """
     try:
         with open(caminho_arquivo, "w", encoding="utf-8") as file:
             json.dump(data, file, ensure_ascii=False, indent=4)
@@ -123,7 +125,6 @@ class CardWidget(MDCard):
         self.active = False
 
     def update_card_state(self):
-        # Atualiza o visual do card com base em seu estado ativo/inativo
         self.md_bg_color = (0.2, 0.8, 0.2, 1) if self.active else (0.9, 0.9, 0.9, 1)
 
 
@@ -132,6 +133,64 @@ Builder.load_file('paginas/alertas.kv')
 Builder.load_file('paginas/login.kv')
 Builder.load_file('paginas/configuracao.kv')
 
+class CardADCP(MDCard):
+    offset_x = +50
+    offset_y = -10
+    tamanho = (75, 75)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.visible = True  # Propriedade para controlar a visibilidade das imagens
+        self.images = []  # Lista para armazenar as imagens do card
+        self.canvas_images = []  # Lista para armazenar os objetos Rectangle das imagens
+
+    def add_image(self, source):
+        """Adiciona uma imagem ao card."""
+        with self.canvas.after:
+            # Define a cor (branca)
+            Color(1, 1, 1, 1)
+            # Cria o retângulo com a imagem
+            rect = Rectangle(source=source, pos=(self.x + self.offset_x, self.y + self.offset_y), size=self.tamanho)
+            self.canvas_images.append(rect)
+            self.images.append(source)
+
+    def update_rect(self, *args):
+        """Atualiza a posição e o tamanho das imagens."""
+        if self.visible:
+            for i, rect in enumerate(self.canvas_images):
+                rect.pos = (self.x + self.offset_x + (i * 80), self.y + self.offset_y)  # Ajusta a posição para evitar sobreposição
+                rect.size = self.tamanho
+        else:
+            # Se não estiver visível, define o tamanho como (0, 0) para ocultar
+            for rect in self.canvas_images:
+                rect.size = (0, 0)
+
+# class CardADCP(MDCard):
+#     offset_x = + 50
+#     offset_y = - 10
+#     tamanho = (75, 75)
+#     def __init__(self, **kwargs):
+#         super().__init__(**kwargs)
+#         self.visible = True  # Propriedade para controlar a visibilidade da imagem
+#         with self.canvas.after:
+#             # Define a cor (branca)
+#             Color(1, 1, 1, 1)
+#             # Cria o retângulo com a imagem
+#             self.rect = Rectangle(source='res/Onda - oceanstream.png', 
+#                                  pos=(self.x + self.offset_x, self.y + self.offset_y), 
+#                                  size=self.tamanho)
+        
+#         # Atualiza a posição do retângulo quando o card é redimensionado
+#         self.bind(pos=self.update_rect, size=self.update_rect)
+    
+#     def update_rect(self, *args):
+#         # Atualiza a posição e o tamanho da imagem apenas se estiver visível
+#         if self.visible:
+#             self.rect.pos = (self.x + self.offset_x, self.y + self.offset_y)
+#             self.rect.size = self.tamanho
+#         else:
+#             # Se não estiver visível, define o tamanho como (0, 0) para ocultar
+#             self.rect.size = (0, 0)
 
 class Overview(Screen):
     def __init__(self, **kwargs):
@@ -140,32 +199,23 @@ class Overview(Screen):
         self.card_configs = dados_cards['cartoes']
 
     def toggle_card(self, card_index):
-        """
-        Minimiza um card e reorganiza os cartões visíveis.
-        """
-
-        # encontra o indice entre os cards ativos
         indice_ref = int(card_index)
         indice_geral = 0
         indice_active = indice_ref
 
-        while indice_geral<indice_ref:
-            # if not self.card_configs[indice_geral]['active']: # busca pelos inativos
-            if not list(self.card_configs[indice_geral]['selecionado']): # busca pelos inativos
-                indice_active-=1
-            indice_geral+=1
-
-        print(f'Indice geral: {card_index}')
-        print(f'Indice ativo: {indice_active}')
+        while indice_geral < indice_ref:
+            if not list(self.card_configs[indice_geral]['selecionado']):
+                indice_active -= 1
+            indice_geral += 1
 
         card_config = self.card_configs[card_index]
         card = self.cards[indice_active]
 
-        # Alterna entre maximizado e minimizado
         card_config["maximize"] = not card_config["maximize"]
 
         if card_config["maximize"]:
-            # Maximiza o card: retorna ao tamanho original e conteúdo original
+            # Maximiza o card: exibe a imagem e o conteúdo original
+            card.visible = True
             card.clear_widgets()
             card.add_widget(
                 Label(
@@ -185,7 +235,8 @@ class Overview(Screen):
             )
             card.height = 120
         else:
-            # Minimiza o card: substitui o conteúdo pelo indicador de minimização
+            # Minimiza o card: oculta a imagem e exibe o conteúdo reduzido
+            card.visible = False
             card.clear_widgets()
             card.add_widget(
                 Label(
@@ -205,38 +256,30 @@ class Overview(Screen):
             )
             card.height = 60
 
-        # Reorganiza os cartões
+        # Atualiza a imagem (oculta ou exibe)
+        card.update_rect()
         self.reorganize_cards()
 
     def reorganize_cards(self):
-        """
-        Reorganiza os cartões no contêiner para refletir o estado atual.
-        """
         card_container = self.ids.card_container
         card_container.clear_widgets()
         for card in self.cards:
             card_container.add_widget(card)
 
     def genereate_cards(self):
-        """
-        Recria os cards no container com base nos parâmetros ativos em self.selected_parameters.
-        """
         print('Recriando cartões na visão geral...')
-        app = MDApp.get_running_app()  # Acessa a instância do aplicativo
-        selected_parameters = app.selected_parameters  # Obtém os parâmetros selecionados
+        app = MDApp.get_running_app()
+        selected_parameters = app.selected_parameters
         card_container = self.ids.card_container
 
         print(f'selected: {selected_parameters}')
-        # Limpa widgets existentes
         card_container.clear_widgets()
         self.cards.clear()
 
-        # Identificar variáveis principais e verificar se possuem conteúdo
         active_parameters = {key: value for key, value in selected_parameters.items() if value}
 
-        # Filtra e recria os cartões ativos
         for idx, config in enumerate(self.card_configs):
-            equipment = config.get("text")  # Usa o texto como identificador do equipamento
+            equipment = config.get("text")
 
             is_active = equipment in active_parameters
             if not is_active:
@@ -245,14 +288,14 @@ class Overview(Screen):
 
             print(list(selected_parameters[equipment]))
             self.card_configs[idx]['selecionado'] = list(selected_parameters[equipment])
-            # Configura os widgets do cartão
-            new_card = MDCard(
-                size_hint=(1, None),
-                height=120,
-                elevation=2,
-                radius=[20, 20, 20, 20],
-            )
+            new_card = CardADCP()
             new_card.add_widget(Label(text=config["text"], color=(0, 0, 0, 1)))
+
+            # Adiciona as imagens correspondentes aos parâmetros selecionados
+            for param in selected_parameters[equipment]:
+                if param in PARAMETROS_IMAGENS:
+                    new_card.add_image(PARAMETROS_IMAGENS[param])
+
             new_card.add_widget(
                 MDRectangleFlatButton(
                     text="Minimizar",
@@ -265,6 +308,43 @@ class Overview(Screen):
             self.cards.append(new_card)
             card_container.add_widget(new_card)
         salvar_cards(self.card_configs)
+
+    # def genereate_cards(self):
+    #     print('Recriando cartões na visão geral...')
+    #     app = MDApp.get_running_app()
+    #     selected_parameters = app.selected_parameters
+    #     card_container = self.ids.card_container
+
+    #     print(f'selected: {selected_parameters}')
+    #     card_container.clear_widgets()
+    #     self.cards.clear()
+
+    #     active_parameters = {key: value for key, value in selected_parameters.items() if value}
+
+    #     for idx, config in enumerate(self.card_configs):
+    #         equipment = config.get("text")
+
+    #         is_active = equipment in active_parameters
+    #         if not is_active:
+    #             self.card_configs[idx]['selecionado'] = []
+    #             continue
+
+    #         print(list(selected_parameters[equipment]))
+    #         self.card_configs[idx]['selecionado'] = list(selected_parameters[equipment])
+    #         new_card = CardADCP()
+    #         new_card.add_widget(Label(text=config["text"], color=(0, 0, 0, 1)))
+    #         new_card.add_widget(
+    #             MDRectangleFlatButton(
+    #                 text="Minimizar",
+    #                 size_hint=(None, None),
+    #                 size=(150, 40),
+    #                 pos_hint={"center_x": 0.5, "center_y": 0.5},
+    #                 on_release=lambda btn, i=idx: self.toggle_card(i),
+    #             )
+    #         )
+    #         self.cards.append(new_card)
+    #         card_container.add_widget(new_card)
+    #     salvar_cards(self.card_configs)
 
     def on_enter(self):
         print('overview on_enter')
@@ -309,10 +389,8 @@ class TelaLogin(Screen):
         self.ids.senha.text = ""
 
 class Configuracao(Screen):
-    # def on_enter
     pass
 
-# Tela de carregamento
 class TelaCarregamento(Screen):
     def __init__(self, **kwargs):
         super(TelaCarregamento, self).__init__(**kwargs)
@@ -329,16 +407,14 @@ class TelaCarregamento(Screen):
         except FileNotFoundError:
             print("Arquivo não encontrado.")
 
-# Gerenciador de Telas
 class GerenciadorTelas(ScreenManager):
     pass
 
 class OceanStream(MDApp):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.selected_parameters = {} # Dicionário para armazenar parâmetros selecionados por equipamento
+        self.selected_parameters = {}
 
-        # preenche as checkboxes com base no arquivo
         for equip in dados_cards['cartoes']:
             if list(equip['selecionado']):
                 for param in list(equip['selecionado']):
@@ -348,35 +424,29 @@ class OceanStream(MDApp):
     def build(self):
         self.gerenciador = GerenciadorTelas()
 
-        # Adiciona as telas ao ScreenManager
         self.gerenciador.add_widget(TelaCarregamento(name='load'))
         self.gerenciador.add_widget(Overview(name='overview'))
         self.gerenciador.add_widget(Alertas(name='alertas'))
         self.gerenciador.add_widget(TelaLogin(name='login'))
         self.gerenciador.add_widget(Configuracao(name='configuracao'))
 
-        # Define a tela inicial como a tela de carregamento
         self.gerenciador.current = 'load'
 
-        # Passa delete_access_token como função de logout para NavigationBar
         self.navigation_bar = NavigationBar(screen_manager=self.gerenciador, logout_callback=self.logout)
 
-        # Observa as mudanças de tela para controlar a visibilidade da toolbar
         self.gerenciador.bind(current=self.on_screen_change)
 
         return self.navigation_bar
 
     def toggle_parameter(self, equipment, parameter, state):
-        # Inicializa o equipamento se não estiver no dicionário
         if equipment not in self.selected_parameters:
             self.selected_parameters[equipment] = set()
 
-        if state == 'down':  # Adiciona parâmetro ao conjunto se marcado
+        if state == 'down':
             self.selected_parameters[equipment].add(parameter)
-        else:  # Remove o parâmetro se desmarcado
+        else:
             self.selected_parameters[equipment].discard(parameter)
 
-        # Verifica os parâmetros selecionados
         print(f"Parâmetros selecionados para {equipment}: {self.selected_parameters[equipment]}")
         
         app = MDApp.get_running_app()
@@ -384,7 +454,6 @@ class OceanStream(MDApp):
             app.gerenciador.get_screen("overview").genereate_cards()
 
     def on_screen_change(self, instance, value):
-        # Oculta a toolbar se a tela atual for 'login' ou 'configuracao'
         if value in ['login', 'configuracao', 'load']:
             self.navigation_bar.toolbar.opacity = 0
             self.navigation_bar.toolbar.disabled = True
