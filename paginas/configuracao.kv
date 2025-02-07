@@ -74,11 +74,11 @@
 
                     # Caixa para Marégrafo
                     MaregrafoConfig:
-                        codigo_maregrafo: "01"
+                        codigo_maregrafo: ""
 
                     # Caixa para Estação Meteorológica
                     EstacaoMeteorologicaConfig:
-                        codigo_estacao: "01"
+                        codigo_estacao: ""
 
                     # Ondógrafos
                     OndografoConfig:
@@ -292,7 +292,7 @@
             active_color: (1, 1, 1, 1)
             pos_hint: {'center_y': 0.5}
             on_state:
-                app.toggle_parameter('Marégrafo ' + root.codigo_maregrafo, 'Nível do Mar', self.state)
+                app.toggle_parameter('Marégrafo', 'Nível do Mar', self.state)
 
 <EstacaoMeteorologicaConfig@BoxLayout>:
     codigo_estacao: ""
@@ -337,7 +337,7 @@
             active_color: (1, 1, 1, 1)
             pos_hint: {'center_y': 0.5}
             on_state:
-                app.toggle_parameter('Estação Meteorológica ' + root.codigo_estacao, 'Ventos', self.state)
+                app.toggle_parameter('Estação Meteorológica', 'Ventos', self.state)
                 
 <OndografoConfig@BoxLayout>:
     nome: ""

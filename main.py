@@ -98,7 +98,6 @@ def salvar_arquivo_json(data, caminho_arquivo):
     try:
         with open(caminho_arquivo, "w", encoding="utf-8") as file:
             json.dump(data, file, ensure_ascii=False, indent=4)
-        print(f"Dicionário salvo como JSON em: {caminho_arquivo}")
     except Exception as e:
         print(f"Erro ao salvar JSON: {e}")
 
@@ -121,7 +120,7 @@ Builder.load_file('paginas/configuracao.kv')
 
 class CardOverview(MDCard):
     offset_x = +50
-    offset_y = -10
+    offset_y = 0
     tamanho = (75, 75)
 
     def __init__(self, **kwargs):
@@ -129,6 +128,9 @@ class CardOverview(MDCard):
         self.visible = True  # Propriedade para controlar a visibilidade das imagens
         self.images = []  # Lista para armazenar as imagens do card
         self.canvas_images = []  # Lista para armazenar os objetos Rectangle das imagens
+
+        # Vincula a atualização das imagens às mudanças de posição e tamanho
+        self.bind(pos=self.update_rect, size=self.update_rect)
 
     def add_image(self, source):
         """Adiciona uma imagem ao card."""
@@ -178,12 +180,14 @@ class Overview(MDScreen):
             card.visible = True
             card.clear_widgets()
             card.add_widget(
-                Label(
-                    text=card_config["text"],
-                    color=(0, 0, 0, 1),
-                    size_hint=(1, 1),
+                    Label(
+                        text=card_config["text"],
+                        color=(0, 0, 0, 1),
+                        height=30,  # Define uma altura fixa para o Label
+                        size_hint_y=None,  # Define que a altura não será ajustada automaticamente
+                        pos_hint={"top": 1},  # Alinha o Label no topo do card
+                    )
                 )
-            )
             card.add_widget(
                 MDRectangleFlatButton(
                     text="Minimizar",
@@ -202,7 +206,9 @@ class Overview(MDScreen):
                 Label(
                     text=card_config["text"],
                     color=(0.5, 0.5, 0.5, 1),
-                    size_hint=(1, 1),
+                    height=30,  # Define uma altura fixa para o Label
+                    size_hint_y=None,  # Define que a altura não será ajustada automaticamente
+                    pos_hint={"top": 1},  # Alinha o Label no topo do card
                 )
             )
             card.add_widget(
@@ -219,6 +225,7 @@ class Overview(MDScreen):
         # Atualiza a imagem (oculta ou exibe)
         card.update_rect()
         self.reorganize_cards()
+        salvar_cards(self.card_configs)
 
     def reorganize_cards(self):
         card_container = self.ids.card_container
@@ -231,13 +238,11 @@ class Overview(MDScreen):
         selected_parameters = app.selected_parameters
         card_container = self.ids.card_container
 
-        # print(f'selected: {selected_parameters}') # debug
         card_container.clear_widgets()
         self.cards.clear()
 
         active_parameters = {key: value for key, value in selected_parameters.items() if value}
 
-        # print(f'active_parameters: {active_parameters}') # debug
         for idx, config in enumerate(self.card_configs):
             equipment = config.get("text")
 
@@ -248,7 +253,6 @@ class Overview(MDScreen):
 
             self.card_configs[idx]['selecionado'] = list(selected_parameters[equipment])
             new_card = CardOverview()
-            new_card.add_widget(Label(text=config["text"], color=(0, 0, 0, 1)))
 
             # Adiciona as imagens correspondentes aos parâmetros selecionados
             for param in selected_parameters[equipment]:
@@ -258,6 +262,16 @@ class Overview(MDScreen):
             # Verifica o atributo "maximize" e define o estado inicial do card
             if config.get("maximize", True):
                 # Card maximizado
+                # new_card.add_widget(Label(text=config["text"], color=(0, 0, 0, 1)))
+                new_card.add_widget(
+                    Label(
+                        text=config["text"],
+                        color=(0, 0, 0, 1),
+                        size_hint_y=None,  # Define que a altura não será ajustada automaticamente
+                        height=30,  # Define uma altura fixa para o Label
+                        pos_hint={"top": 1},  # Alinha o Label no topo do card
+                    )
+                )
                 new_card.add_widget(
                     MDRectangleFlatButton(
                         text="Minimizar",
@@ -269,6 +283,17 @@ class Overview(MDScreen):
                 )
                 new_card.height = 120
             else:
+                new_card.visible = False
+                # new_card.add_widget(Label(text=config["text"], color=(0.5, 0.5, 0.5, 1)))
+                new_card.add_widget(
+                    Label(
+                        text=config["text"],
+                        color=(0.5, 0.5, 0.5, 1),
+                        size_hint_y=None,  # Define que a altura não será ajustada automaticamente
+                        height=30,  # Define uma altura fixa para o Label
+                        pos_hint={"top": 1},  # Alinha o Label no topo do card
+                    )
+                )
                 # Card minimizado
                 new_card.add_widget(
                     MDRectangleFlatButton(
@@ -283,9 +308,6 @@ class Overview(MDScreen):
 
             self.cards.append(new_card)
             card_container.add_widget(new_card)
-
-            # Agenda a atualização das posições e tamanhos
-            Clock.schedule_once(new_card.update_rect, 0.1) # sem isso, as imagens são renderizadas na mesma posição
 
         salvar_cards(self.card_configs)
 

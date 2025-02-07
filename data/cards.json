@@ -1,9 +1,9 @@
 {
     "nome": "Overview - Cards",
-    "atualizado_em": "2025-02-07 14:52:31.371473",
+    "atualizado_em": "2025-02-07 16:39:18.396966",
     "cartoes": [
         {
-            "maximize": true,
+            "maximize": false,
             "text": "Boia 04",
             "selecionado": [
                 "Swell",
@@ -11,18 +11,21 @@
             ]
         },
         {
-            "maximize": true,
+            "maximize": false,
             "text": "Boia 08",
             "selecionado": [
-                "Corrente Fundo",
+                "Corrente Superfície",
                 "Corrente Meio",
-                "Corrente Superfície"
+                "Corrente Fundo"
             ]
         },
         {
             "maximize": true,
             "text": "Boia 10",
-            "selecionado": []
+            "selecionado": [
+                "Corrente Meio",
+                "Sea"
+            ]
         },
         {
             "maximize": true,
@@ -50,9 +53,11 @@
             "selecionado": []
         },
         {
-            "maximize": true,
+            "maximize": false,
             "text": "Estação Meteorológica",
-            "selecionado": []
+            "selecionado": [
+                "Ventos"
+            ]
         }
     ]
 }
