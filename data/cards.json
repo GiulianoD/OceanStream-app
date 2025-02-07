@@ -1,16 +1,23 @@
 {
     "nome": "Overview - Cards",
-    "atualizado_em": "2025-02-03 15:58:37.792343",
+    "atualizado_em": "2025-02-07 14:52:31.371473",
     "cartoes": [
         {
             "maximize": true,
             "text": "Boia 04",
-            "selecionado": []
+            "selecionado": [
+                "Swell",
+                "Ondas"
+            ]
         },
         {
             "maximize": true,
             "text": "Boia 08",
-            "selecionado": []
+            "selecionado": [
+                "Corrente Fundo",
+                "Corrente Meio",
+                "Corrente Superfície"
+            ]
         },
         {
             "maximize": true,
