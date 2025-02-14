@@ -98,155 +98,123 @@
     orientation: 'vertical'
     size_hint_y: None
     height: self.minimum_height
-    padding: dp(10)
-    spacing: dp(10)
+    padding: dp(15)
+    spacing: dp(12)
     canvas.before:
         Color:
-            rgba: (0.02, 0.29, 0.61, 1)  # Cor #044B9C
+            rgba: (0, 0, 0, 0.2)  # Cor da sombra (preto com 20% de opacidade)
+        RoundedRectangle:
+            size: [self.width + dp(6), self.height + dp(6)]  # Faz a sombra ligeiramente maior
+            pos: [self.x - dp(3), self.y - dp(3)]  # Posiciona a sombra um pouco atrás
+            radius: [dp(18)]  # Bordas arredondadas
+
+        Color:
+            rgba: (1, 1, 1, 1)  # Fundo branco
         RoundedRectangle:
             size: self.size
             pos: self.pos
-            radius: [dp(10)]
+            radius: [dp(15)]
+
 
     Label:
         text: "Boia " + root.codigo_boia
-        font_size: "20sp"
-        color: (1, 1, 1, 1)  # Branco
+        font_size: "22sp"
+        color: (0.02, 0.29, 0.61, 1)  # Azul de fundo
         bold: True
-        halign: 'left'
+        halign: 'center'
         valign: 'middle'
-
-    BoxLayout:
-        orientation: 'horizontal'
         size_hint_y: None
         height: dp(40)
+
+    GridLayout:
+        cols: 2
         spacing: dp(10)
+        size_hint_y: None
+        height: self.minimum_height
 
         Label:
             text: "Corrente Fundo"
-            font_size: "16sp"
-            color: (1, 1, 1, 1)
+            font_size: "18sp"
+            color: (0.02, 0.29, 0.61, 1)  # Azul de fundo
             halign: 'left'
             valign: 'middle'
+            size_hint_y: None
+            height: dp(40)
 
-        MDCheckbox:
-            size_hint: [None, None]
-            size: dp(30), dp(30)
-            color: (1, 1, 1, 1)
-            active_color: (1, 1, 1, 1)
-            pos_hint: {'center_y': 0.5}
-            on_state:
-                app.toggle_parameter('Boia ' + root.codigo_boia, 'Corrente Fundo', self.state)
-
-    BoxLayout:
-        orientation: 'horizontal'
-        size_hint_y: None
-        height: dp(40)
-        spacing: dp(10)
+        StyledCheckbox:
+            id: checkbox_fundo
+            active_color: (0.2, 0.6, 1, 1)  # Azul vibrante quando ativo
+            inactive_color: (1, 1, 1, 1)  # Branco quando inativo
+            on_state: app.toggle_parameter('Boia ' + root.codigo_boia, 'Corrente Fundo', self.state)
+            color_inactive: "blue"
 
         Label:
             text: "Corrente Meio"
-            font_size: "16sp"
-            color: (1, 1, 1, 1)
+            font_size: "18sp"
+            color: (0.02, 0.29, 0.61, 1)
             halign: 'left'
             valign: 'middle'
+            size_hint_y: None
+            height: dp(40)
 
-        MDCheckbox:
-            size_hint: [None, None]
-            size: dp(30), dp(30)
-            color: (1, 1, 1, 1)
-            active_color: (1, 1, 1, 1)
-            pos_hint: {'center_y': 0.5}
-            on_state:
-                app.toggle_parameter('Boia ' + root.codigo_boia, 'Corrente Meio', self.state)
-
-    BoxLayout:
-        orientation: 'horizontal'
-        size_hint_y: None
-        height: dp(40)
-        spacing: dp(10)
+        StyledCheckbox:
+            on_state: app.toggle_parameter('Boia ' + root.codigo_boia, 'Corrente Meio', self.state)
+            color_inactive: "blue"
 
         Label:
             text: "Corrente Superfície"
-            font_size: "16sp"
-            color: (1, 1, 1, 1)
+            font_size: "18sp"
+            color: (0.02, 0.29, 0.61, 1)
             halign: 'left'
             valign: 'middle'
+            size_hint_y: None
+            height: dp(40)
 
-        MDCheckbox:
-            size_hint: [None, None]
-            size: dp(30), dp(30)
-            color: (1, 1, 1, 1)
-            active_color: (1, 1, 1, 1)
-            pos_hint: {'center_y': 0.5}
-            on_state:
-                app.toggle_parameter('Boia ' + root.codigo_boia, 'Corrente Superfície', self.state)
-
-    BoxLayout:
-        orientation: 'horizontal'
-        size_hint_y: None
-        height: dp(40)
-        spacing: dp(10)
+        StyledCheckbox:
+            on_state: app.toggle_parameter('Boia ' + root.codigo_boia, 'Corrente Superfície', self.state)
+            color_inactive: "blue"
 
         Label:
             text: "Ondas"
-            font_size: "16sp"
-            color: (1, 1, 1, 1)
+            font_size: "18sp"
+            color: (0.02, 0.29, 0.61, 1)
             halign: 'left'
             valign: 'middle'
+            size_hint_y: None
+            height: dp(40)
 
-        MDCheckbox:
-            size_hint: [None, None]
-            size: dp(30), dp(30)
-            color: (1, 1, 1, 1)
-            active_color: (1, 1, 1, 1)
-            pos_hint: {'center_y': 0.5}
-            on_state:
-                app.toggle_parameter('Boia ' + root.codigo_boia, 'Ondas', self.state)
-
-    BoxLayout:
-        orientation: 'horizontal'
-        size_hint_y: None
-        height: dp(40)
-        spacing: dp(10)
+        StyledCheckbox:
+            on_state: app.toggle_parameter('Boia ' + root.codigo_boia, 'Ondas', self.state)
+            color_inactive: "blue"
 
         Label:
             text: "Sea"
-            font_size: "16sp"
-            color: (1, 1, 1, 1)
+            font_size: "18sp"
+            color: (0.02, 0.29, 0.61, 1)
             halign: 'left'
             valign: 'middle'
+            size_hint_y: None
+            height: dp(40)
 
-        MDCheckbox:
-            size_hint: [None, None]
-            size: dp(30), dp(30)
-            color: (1, 1, 1, 1)
-            active_color: (1, 1, 1, 1)
-            pos_hint: {'center_y': 0.5}
-            on_state:
-                app.toggle_parameter('Boia ' + root.codigo_boia, 'Sea', self.state)
-
-    BoxLayout:
-        orientation: 'horizontal'
-        size_hint_y: None
-        height: dp(40)
-        spacing: dp(10)
+        StyledCheckbox:
+            on_state: app.toggle_parameter('Boia ' + root.codigo_boia, 'Sea', self.state)
+            color_inactive: "blue"
 
         Label:
             text: "Swell"
-            font_size: "16sp"
-            color: (1, 1, 1, 1)
+            font_size: "18sp"
+            color: (0.02, 0.29, 0.61, 1)
             halign: 'left'
             valign: 'middle'
+            size_hint_y: None
+            height: dp(40)
 
-        MDCheckbox:
-            size_hint: [None, None]
-            size: dp(30), dp(30)
-            color: (1, 1, 1, 1)
-            active_color: (1, 1, 1, 1)
-            pos_hint: {'center_y': 0.5}
-            on_state:
-                app.toggle_parameter('Boia ' + root.codigo_boia, 'Swell', self.state)
+        StyledCheckbox:
+            on_state: app.toggle_parameter('Boia ' + root.codigo_boia, 'Swell', self.state)
+            color_inactive: "blue"
+
+
+
 
 
 <MaregrafoConfig@BoxLayout>:
@@ -254,176 +222,179 @@
     orientation: 'vertical'
     size_hint_y: None
     height: self.minimum_height
-    padding: dp(10)
-    spacing: dp(10)
+    padding: dp(15)
+    spacing: dp(12)
     canvas.before:
         Color:
-            rgba: (0.29, 0.02, 0.61, 1)  # Cor #4A049C
+            rgba: (0, 0, 0, 0.2)  # Cor da sombra (preto com 20% de opacidade)
+        RoundedRectangle:
+            size: [self.width + dp(6), self.height + dp(6)]  # Faz a sombra ligeiramente maior
+            pos: [self.x - dp(3), self.y - dp(3)]  # Posiciona a sombra um pouco atrás
+            radius: [dp(18)]  # Bordas arredondadas
+
+        Color:
+            rgba: (1, 1, 1, 1)  # Fundo branco
         RoundedRectangle:
             size: self.size
             pos: self.pos
-            radius: [dp(10)]
+            radius: [dp(15)]
 
     Label:
-        text: "Marégrafo"
-        font_size: "20sp"
-        color: (1, 1, 1, 1)  # Branco
+        text: "Marégrafo "
+        font_size: "22sp"
+        color: (0.02, 0.29, 0.61, 1)  # Azul de fundo
         bold: True
-        halign: 'left'
+        halign: 'center'
         valign: 'middle'
-
-    BoxLayout:
-        orientation: 'horizontal'
         size_hint_y: None
         height: dp(40)
+
+    GridLayout:
+        cols: 2
         spacing: dp(10)
+        size_hint_y: None
+        height: self.minimum_height
 
         Label:
             text: "Nível do Mar"
-            font_size: "16sp"
-            color: (1, 1, 1, 1)
+            font_size: "18sp"
+            color: (0.02, 0.29, 0.61, 1)  # Azul de fundo
             halign: 'left'
             valign: 'middle'
+            size_hint_y: None
+            height: dp(40)
 
-        MDCheckbox:
-            size_hint: [None, None]
-            size: dp(30), dp(30)
-            color: (1, 1, 1, 1)
-            active_color: (1, 1, 1, 1)
-            pos_hint: {'center_y': 0.5}
-            on_state:
-                app.toggle_parameter('Marégrafo ' + root.codigo_maregrafo, 'Nível do Mar', self.state)
+        StyledCheckbox:
+            on_state: app.toggle_parameter('Marégrafo ' + root.codigo_maregrafo, 'Nível do Mar', self.state)
+            color_inactive: "blue"
+
 
 <EstacaoMeteorologicaConfig@BoxLayout>:
     codigo_estacao: ""
     orientation: 'vertical'
     size_hint_y: None
     height: self.minimum_height
-    padding: dp(10)
-    spacing: dp(10)
+    padding: dp(15)
+    spacing: dp(12)
     canvas.before:
         Color:
-            rgba: (0.02, 0.61, 0.29, 1)  # Cor #049C4A
+            rgba: (0, 0, 0, 0.2)  # Cor da sombra (preto com 20% de opacidade)
+        RoundedRectangle:
+            size: [self.width + dp(6), self.height + dp(6)]  # Faz a sombra ligeiramente maior
+            pos: [self.x - dp(3), self.y - dp(3)]  # Posiciona a sombra um pouco atrás
+            radius: [dp(18)]  # Bordas arredondadas
+
+        Color:
+            rgba: (1, 1, 1, 1)  # Fundo branco
         RoundedRectangle:
             size: self.size
             pos: self.pos
-            radius: [dp(10)]
+            radius: [dp(15)]
 
     Label:
-        text: "Estação Meteorológica"
-        font_size: "20sp"
-        color: (1, 1, 1, 1)  # Branco
+        text: "Estação Meteorológica "
+        font_size: "22sp"
+        color: (0.02, 0.29, 0.61, 1)  # Azul escuro, igual ao das outras seções
         bold: True
-        halign: 'left'
+        halign: 'center'
         valign: 'middle'
-
-    BoxLayout:
-        orientation: 'horizontal'
         size_hint_y: None
         height: dp(40)
+
+    GridLayout:
+        cols: 2
         spacing: dp(10)
+        size_hint_y: None
+        height: self.minimum_height
 
         Label:
             text: "Ventos"
-            font_size: "16sp"
-            color: (1, 1, 1, 1)  # Branco
+            font_size: "18sp"
+            color: (0.02, 0.29, 0.61, 1)  # Azul escuro, igual às outras seções
             halign: 'left'
             valign: 'middle'
+            size_hint_y: None
+            height: dp(40)
 
-        MDCheckbox:
-            size_hint: [None, None]
-            size: dp(30), dp(30)
-            color: (1, 1, 1, 1)
-            active_color: (1, 1, 1, 1)
-            pos_hint: {'center_y': 0.5}
-            on_state:
-                app.toggle_parameter('Estação Meteorológica ' + root.codigo_estacao, 'Ventos', self.state)
+        StyledCheckbox:
+            on_state: app.toggle_parameter('Estação Meteorológica ' + root.codigo_estacao, 'Ventos', self.state)
+            color_inactive: "blue"
+
+
                 
 <OndografoConfig@BoxLayout>:
     nome: ""
     orientation: 'vertical'
     size_hint_y: None
     height: self.minimum_height
-    padding: dp(10)
-    spacing: dp(10)
+    padding: dp(15)
+    spacing: dp(12)
     canvas.before:
         Color:
-            rgba: (0.61, 0.02, 0.29, 1)  # Cor #9C044A
+            rgba: (0, 0, 0, 0.2)  # Cor da sombra (preto com 20% de opacidade)
+        RoundedRectangle:
+            size: [self.width + dp(6), self.height + dp(6)]  # Faz a sombra ligeiramente maior
+            pos: [self.x - dp(3), self.y - dp(3)]  # Posiciona a sombra um pouco atrás
+            radius: [dp(18)]  # Bordas arredondadas
+
+        Color:
+            rgba: (1, 1, 1, 1)  # Fundo branco
         RoundedRectangle:
             size: self.size
             pos: self.pos
-            radius: [dp(10)]
+            radius: [dp(15)]
 
     Label:
         text: "Ondógrafo " + root.nome
-        font_size: "20sp"
-        color: (1, 1, 1, 1)  # Branco
+        font_size: "22sp"
+        color: (0.02, 0.29, 0.61, 1)  # Azul escuro, igual às outras seções
         bold: True
-        halign: 'left'
+        halign: 'center'
         valign: 'middle'
-
-    BoxLayout:
-        orientation: 'horizontal'
         size_hint_y: None
         height: dp(40)
+
+    GridLayout:
+        cols: 2
         spacing: dp(10)
+        size_hint_y: None
+        height: self.minimum_height
 
         Label:
             text: "Altura Significativa de Onda"
-            font_size: "16sp"
-            color: (1, 1, 1, 1)
+            font_size: "18sp"
+            color: (0.02, 0.29, 0.61, 1)  # Azul escuro, igual às outras seções
             halign: 'left'
             valign: 'middle'
+            size_hint_y: None
+            height: dp(40)
 
-        MDCheckbox:
-            size_hint: [None, None]
-            size: dp(30), dp(30)
-            color: (1, 1, 1, 1)
-            active_color: (1, 1, 1, 1)
-            pos_hint: {'center_y': 0.5}
-            on_state:
-                app.toggle_parameter('Ondógrafo ' + root.nome, 'Altura Significativa de Onda', self.state)
-
-    BoxLayout:
-        orientation: 'horizontal'
-        size_hint_y: None
-        height: dp(40)
-        spacing: dp(10)
+        StyledCheckbox:
+            on_state: app.toggle_parameter('Ondógrafo ' + root.nome, 'Altura Significativa de Onda', self.state)
+            color_inactive: "blue"
 
         Label:
             text: "Altura Máxima"
-            font_size: "16sp"
-            color: (1, 1, 1, 1)
+            font_size: "18sp"
+            color: (0.02, 0.29, 0.61, 1)  # Azul escuro, igual às outras seções
             halign: 'left'
             valign: 'middle'
+            size_hint_y: None
+            height: dp(40)
 
-        MDCheckbox:
-            size_hint: [None, None]
-            size: dp(30), dp(30)
-            color: (1, 1, 1, 1)
-            active_color: (1, 1, 1, 1)
-            pos_hint: {'center_y': 0.5}
-            on_state:
-                app.toggle_parameter('Ondógrafo ' + root.nome, 'Altura Máxima', self.state)
-
-    BoxLayout:
-        orientation: 'horizontal'
-        size_hint_y: None
-        height: dp(40)
-        spacing: dp(10)
+        StyledCheckbox:
+            on_state: app.toggle_parameter('Ondógrafo ' + root.nome, 'Altura Máxima', self.state)
+            color_inactive: "blue"
 
         Label:
             text: "Período"
-            font_size: "16sp"
-            color: (1, 1, 1, 1)
+            font_size: "18sp"
+            color: (0.02, 0.29, 0.61, 1)  # Azul escuro, igual às outras seções
             halign: 'left'
             valign: 'middle'
+            size_hint_y: None
+            height: dp(40)
 
-        MDCheckbox:
-            size_hint: [None, None]
-            size: dp(30), dp(30)
-            color: (1, 1, 1, 1)
-            active_color: (1, 1, 1, 1)
-            pos_hint: {'center_y': 0.5}
-            on_state:
-                app.toggle_parameter('Ondógrafo ' + root.nome, 'Período', self.state)
+        StyledCheckbox:
+            on_state: app.toggle_parameter('Ondógrafo ' + root.nome, 'Período', self.state)
+            color_inactive: "blue"

@@ -15,6 +15,23 @@ import json
 import requests
 import os
 import jwt
+from kivy.animation import Animation
+from kivymd.uix.selectioncontrol import MDCheckbox
+
+class StyledCheckbox(MDCheckbox):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.inactive_color = (1, 1, 1, 1)  # Fundo branco quando desmarcado
+        self.line_color_normal = (0.8, 0.8, 0.8, 1)  # Borda cinza claro antes de ser selecionado
+
+    def animate_checkbox(self, state):
+        if state == "down":
+            anim = Animation(active_color=(0.2, 0.6, 1, 1), duration=0.2)  # Azul vibrante quando marcado
+        else:
+            anim = Animation(active_color=(1, 1, 1, 1), duration=0.2)  # Mantém fundo branco quando desmarcado
+        anim.start(self)
+
+
 
 Config.set('graphics', 'multisamples', '0')
 

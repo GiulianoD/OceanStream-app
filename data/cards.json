@@ -1,6 +1,6 @@
 {
     "nome": "Overview - Cards",
-    "atualizado_em": "2025-02-03 15:58:37.792343",
+    "atualizado_em": "2025-02-14 10:45:30.897679",
     "cartoes": [
         {
             "maximize": true,
@@ -10,7 +10,9 @@
         {
             "maximize": true,
             "text": "Boia 08",
-            "selecionado": []
+            "selecionado": [
+                "Corrente Superfície"
+            ]
         },
         {
             "maximize": true,
