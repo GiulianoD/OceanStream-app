@@ -61,340 +61,798 @@
                     height: self.minimum_height
 
                     # Caixa para Boia 04
-                    BoiaConfig:
+                    BoxLayout:
                         codigo_boia: "04"
+                        orientation: 'vertical'
+                        size_hint_y: None
+                        height: self.minimum_height
+                        padding: dp(15)
+                        spacing: dp(12)
+                        canvas.before:
+                            Color:
+                                rgba: (0, 0, 0, 0.2)  # Cor da sombra (preto com 20% de opacidade)
+                            RoundedRectangle:
+                                size: [self.width + dp(6), self.height + dp(6)]  # Faz a sombra ligeiramente maior
+                                pos: [self.x - dp(3), self.y - dp(3)]  # Posiciona a sombra um pouco atrás
+                                radius: [dp(18)]  # Bordas arredondadas
+
+                            Color:
+                                rgba: (1, 1, 1, 1)  # Fundo branco
+                            RoundedRectangle:
+                                size: self.size
+                                pos: self.pos
+                                radius: [dp(15)]
+
+
+                        Label:
+                            text: "Boia 04"
+                            font_size: "22sp"
+                            color: (0.02, 0.29, 0.61, 1)  # Azul de fundo
+                            bold: True
+                            halign: 'center'
+                            valign: 'middle'
+                            size_hint_y: None
+                            height: dp(40)
+
+                        GridLayout:
+                            cols: 2
+                            spacing: dp(10)
+                            size_hint_y: None
+                            height: self.minimum_height
+
+                            Label:
+                                text: "Corrente Fundo"
+                                font_size: "18sp"
+                                color: (0.02, 0.29, 0.61, 1)  # Azul de fundo
+                                halign: 'left'
+                                valign: 'middle'
+                                size_hint_y: None
+                                height: dp(40)
+
+                            StyledCheckbox:
+                                id: chkbx_b04_corrfundo
+                                on_state: app.toggle_parameter('Boia 04', 'Corrente Fundo', self.state)
+                                color_inactive: "blue"
+
+                            Label:
+                                text: "Corrente Meio"
+                                font_size: "18sp"
+                                color: (0.02, 0.29, 0.61, 1)
+                                halign: 'left'
+                                valign: 'middle'
+                                size_hint_y: None
+                                height: dp(40)
+
+                            StyledCheckbox:
+                                id: chkbx_b04_corrmeio
+                                on_state: app.toggle_parameter('Boia 04', 'Corrente Meio', self.state)
+                                color_inactive: "blue"
+
+                            Label:
+                                text: "Corrente Superfície"
+                                font_size: "18sp"
+                                color: (0.02, 0.29, 0.61, 1)
+                                halign: 'left'
+                                valign: 'middle'
+                                size_hint_y: None
+                                height: dp(40)
+
+                            StyledCheckbox:
+                                id: chkbx_b04_corrsuperficie
+                                on_state: app.toggle_parameter('Boia 04', 'Corrente Superfície', self.state)
+                                color_inactive: "blue"
+
+                            Label:
+                                text: "Ondas"
+                                font_size: "18sp"
+                                color: (0.02, 0.29, 0.61, 1)
+                                halign: 'left'
+                                valign: 'middle'
+                                size_hint_y: None
+                                height: dp(40)
+
+                            StyledCheckbox:
+                                id: chkbx_b04_ondas
+                                on_state: app.toggle_parameter('Boia 04', 'Ondas', self.state)
+                                color_inactive: "blue"
+
+                            Label:
+                                text: "Sea"
+                                font_size: "18sp"
+                                color: (0.02, 0.29, 0.61, 1)
+                                halign: 'left'
+                                valign: 'middle'
+                                size_hint_y: None
+                                height: dp(40)
+
+                            StyledCheckbox:
+                                id: chkbx_b04_sea
+                                on_state: app.toggle_parameter('Boia 04', 'Sea', self.state)
+                                color_inactive: "blue"
+
+                            Label:
+                                text: "Swell"
+                                font_size: "18sp"
+                                color: (0.02, 0.29, 0.61, 1)
+                                halign: 'left'
+                                valign: 'middle'
+                                size_hint_y: None
+                                height: dp(40)
+
+                            StyledCheckbox:
+                                id: chkbx_b04_swell
+                                on_state: app.toggle_parameter('Boia 04', 'Swell', self.state)
+                                color_inactive: "blue"
 
                     # Caixa para Boia 08
-                    BoiaConfig:
+                    BoxLayout:
                         codigo_boia: "08"
+                        orientation: 'vertical'
+                        size_hint_y: None
+                        height: self.minimum_height
+                        padding: dp(15)
+                        spacing: dp(12)
+                        canvas.before:
+                            Color:
+                                rgba: (0, 0, 0, 0.2)  # Cor da sombra (preto com 20% de opacidade)
+                            RoundedRectangle:
+                                size: [self.width + dp(6), self.height + dp(6)]  # Faz a sombra ligeiramente maior
+                                pos: [self.x - dp(3), self.y - dp(3)]  # Posiciona a sombra um pouco atrás
+                                radius: [dp(18)]  # Bordas arredondadas
+
+                            Color:
+                                rgba: (1, 1, 1, 1)  # Fundo branco
+                            RoundedRectangle:
+                                size: self.size
+                                pos: self.pos
+                                radius: [dp(15)]
+
+
+                        Label:
+                            text: "Boia 08"
+                            font_size: "22sp"
+                            color: (0.02, 0.29, 0.61, 1)  # Azul de fundo
+                            bold: True
+                            halign: 'center'
+                            valign: 'middle'
+                            size_hint_y: None
+                            height: dp(40)
+
+                        GridLayout:
+                            cols: 2
+                            spacing: dp(10)
+                            size_hint_y: None
+                            height: self.minimum_height
+
+                            Label:
+                                text: "Corrente Fundo"
+                                font_size: "18sp"
+                                color: (0.02, 0.29, 0.61, 1)  # Azul de fundo
+                                halign: 'left'
+                                valign: 'middle'
+                                size_hint_y: None
+                                height: dp(40)
+
+                            StyledCheckbox:
+                                id: chkbx_b08_corrfundo
+                                on_state: app.toggle_parameter('Boia 08', 'Corrente Fundo', self.state)
+                                color_inactive: "blue"
+
+                            Label:
+                                text: "Corrente Meio"
+                                font_size: "18sp"
+                                color: (0.02, 0.29, 0.61, 1)
+                                halign: 'left'
+                                valign: 'middle'
+                                size_hint_y: None
+                                height: dp(40)
+
+                            StyledCheckbox:
+                                id: chkbx_b08_corrmeio
+                                on_state: app.toggle_parameter('Boia 08', 'Corrente Meio', self.state)
+                                color_inactive: "blue"
+
+                            Label:
+                                text: "Corrente Superfície"
+                                font_size: "18sp"
+                                color: (0.02, 0.29, 0.61, 1)
+                                halign: 'left'
+                                valign: 'middle'
+                                size_hint_y: None
+                                height: dp(40)
+
+                            StyledCheckbox:
+                                id: chkbx_b08_corrsuperficie
+                                on_state: app.toggle_parameter('Boia 08', 'Corrente Superfície', self.state)
+                                color_inactive: "blue"
+
+                            Label:
+                                text: "Ondas"
+                                font_size: "18sp"
+                                color: (0.02, 0.29, 0.61, 1)
+                                halign: 'left'
+                                valign: 'middle'
+                                size_hint_y: None
+                                height: dp(40)
+
+                            StyledCheckbox:
+                                id: chkbx_b08_ondas
+                                on_state: app.toggle_parameter('Boia 08', 'Ondas', self.state)
+                                color_inactive: "blue"
+
+                            Label:
+                                text: "Sea"
+                                font_size: "18sp"
+                                color: (0.02, 0.29, 0.61, 1)
+                                halign: 'left'
+                                valign: 'middle'
+                                size_hint_y: None
+                                height: dp(40)
+
+                            StyledCheckbox:
+                                id: chkbx_b08_sea
+                                on_state: app.toggle_parameter('Boia 08', 'Sea', self.state)
+                                color_inactive: "blue"
+
+                            Label:
+                                text: "Swell"
+                                font_size: "18sp"
+                                color: (0.02, 0.29, 0.61, 1)
+                                halign: 'left'
+                                valign: 'middle'
+                                size_hint_y: None
+                                height: dp(40)
+
+                            StyledCheckbox:
+                                id: chkbx_b08_swell
+                                on_state: app.toggle_parameter('Boia 08', 'Swell', self.state)
+                                color_inactive: "blue"
 
                     # Caixa para Boia 10
-                    BoiaConfig:
+                    BoxLayout:
                         codigo_boia: "10"
+                        orientation: 'vertical'
+                        size_hint_y: None
+                        height: self.minimum_height
+                        padding: dp(15)
+                        spacing: dp(12)
+                        canvas.before:
+                            Color:
+                                rgba: (0, 0, 0, 0.2)  # Cor da sombra (preto com 20% de opacidade)
+                            RoundedRectangle:
+                                size: [self.width + dp(6), self.height + dp(6)]  # Faz a sombra ligeiramente maior
+                                pos: [self.x - dp(3), self.y - dp(3)]  # Posiciona a sombra um pouco atrás
+                                radius: [dp(18)]  # Bordas arredondadas
+
+                            Color:
+                                rgba: (1, 1, 1, 1)  # Fundo branco
+                            RoundedRectangle:
+                                size: self.size
+                                pos: self.pos
+                                radius: [dp(15)]
+
+
+                        Label:
+                            text: "Boia 10"
+                            font_size: "22sp"
+                            color: (0.02, 0.29, 0.61, 1)  # Azul de fundo
+                            bold: True
+                            halign: 'center'
+                            valign: 'middle'
+                            size_hint_y: None
+                            height: dp(40)
+
+                        GridLayout:
+                            cols: 2
+                            spacing: dp(10)
+                            size_hint_y: None
+                            height: self.minimum_height
+
+                            Label:
+                                text: "Corrente Fundo"
+                                font_size: "18sp"
+                                color: (0.02, 0.29, 0.61, 1)  # Azul de fundo
+                                halign: 'left'
+                                valign: 'middle'
+                                size_hint_y: None
+                                height: dp(40)
+
+                            StyledCheckbox:
+                                id: chkbx_b10_corrfundo
+                                on_state: app.toggle_parameter('Boia 10', 'Corrente Fundo', self.state)
+                                color_inactive: "blue"
+
+                            Label:
+                                text: "Corrente Meio"
+                                font_size: "18sp"
+                                color: (0.02, 0.29, 0.61, 1)
+                                halign: 'left'
+                                valign: 'middle'
+                                size_hint_y: None
+                                height: dp(40)
+
+                            StyledCheckbox:
+                                id: chkbx_b10_corrmeio
+                                on_state: app.toggle_parameter('Boia 10', 'Corrente Meio', self.state)
+                                color_inactive: "blue"
+
+                            Label:
+                                text: "Corrente Superfície"
+                                font_size: "18sp"
+                                color: (0.02, 0.29, 0.61, 1)
+                                halign: 'left'
+                                valign: 'middle'
+                                size_hint_y: None
+                                height: dp(40)
+
+                            StyledCheckbox:
+                                id: chkbx_b10_corrsuperficie
+                                on_state: app.toggle_parameter('Boia 10', 'Corrente Superfície', self.state)
+                                color_inactive: "blue"
+
+                            Label:
+                                text: "Ondas"
+                                font_size: "18sp"
+                                color: (0.02, 0.29, 0.61, 1)
+                                halign: 'left'
+                                valign: 'middle'
+                                size_hint_y: None
+                                height: dp(40)
+
+                            StyledCheckbox:
+                                id: chkbx_b10_ondas
+                                on_state: app.toggle_parameter('Boia 10', 'Ondas', self.state)
+                                color_inactive: "blue"
+
+                            Label:
+                                text: "Sea"
+                                font_size: "18sp"
+                                color: (0.02, 0.29, 0.61, 1)
+                                halign: 'left'
+                                valign: 'middle'
+                                size_hint_y: None
+                                height: dp(40)
+
+                            StyledCheckbox:
+                                id: chkbx_b10_sea
+                                on_state: app.toggle_parameter('Boia 10', 'Sea', self.state)
+                                color_inactive: "blue"
+
+                            Label:
+                                text: "Swell"
+                                font_size: "18sp"
+                                color: (0.02, 0.29, 0.61, 1)
+                                halign: 'left'
+                                valign: 'middle'
+                                size_hint_y: None
+                                height: dp(40)
+
+                            StyledCheckbox:
+                                id: chkbx_b10_swell
+                                on_state: app.toggle_parameter('Boia 10', 'Swell', self.state)
+                                color_inactive: "blue"
+
 
                     # Caixa para Marégrafo
-                    MaregrafoConfig:
-                        codigo_maregrafo: ""
+                    BoxLayout:
+                        orientation: 'vertical'
+                        size_hint_y: None
+                        height: self.minimum_height
+                        padding: dp(15)
+                        spacing: dp(12)
+                        canvas.before:
+                            Color:
+                                rgba: (0, 0, 0, 0.2)  # Cor da sombra (preto com 20% de opacidade)
+                            RoundedRectangle:
+                                size: [self.width + dp(6), self.height + dp(6)]  # Faz a sombra ligeiramente maior
+                                pos: [self.x - dp(3), self.y - dp(3)]  # Posiciona a sombra um pouco atrás
+                                radius: [dp(18)]  # Bordas arredondadas
+
+                            Color:
+                                rgba: (1, 1, 1, 1)  # Fundo branco
+                            RoundedRectangle:
+                                size: self.size
+                                pos: self.pos
+                                radius: [dp(15)]
+
+                        Label:
+                            text: "Marégrafo"
+                            font_size: "22sp"
+                            color: (0.02, 0.29, 0.61, 1)  # Azul de fundo
+                            bold: True
+                            halign: 'center'
+                            valign: 'middle'
+                            size_hint_y: None
+                            height: dp(40)
+
+                        GridLayout:
+                            cols: 2
+                            spacing: dp(10)
+                            size_hint_y: None
+                            height: self.minimum_height
+
+                            Label:
+                                text: "Nível do Mar"
+                                font_size: "18sp"
+                                color: (0.02, 0.29, 0.61, 1)  # Azul de fundo
+                                halign: 'left'
+                                valign: 'middle'
+                                size_hint_y: None
+                                height: dp(40)
+
+                            StyledCheckbox:
+                                id: chkbx_maregrafo_elevacao
+                                on_state: app.toggle_parameter('Marégrafo', 'Nível do Mar', self.state)
+                                color_inactive: "blue"
 
                     # Caixa para Estação Meteorológica
-                    EstacaoMeteorologicaConfig:
+                    BoxLayout:
                         codigo_estacao: ""
+                        orientation: 'vertical'
+                        size_hint_y: None
+                        height: self.minimum_height
+                        padding: dp(15)
+                        spacing: dp(12)
+                        canvas.before:
+                            Color:
+                                rgba: (0, 0, 0, 0.2)  # Cor da sombra (preto com 20% de opacidade)
+                            RoundedRectangle:
+                                size: [self.width + dp(6), self.height + dp(6)]  # Faz a sombra ligeiramente maior
+                                pos: [self.x - dp(3), self.y - dp(3)]  # Posiciona a sombra um pouco atrás
+                                radius: [dp(18)]  # Bordas arredondadas
 
-                    # Ondógrafos
-                    OndografoConfig:
-                        nome: "Píer II"
+                            Color:
+                                rgba: (1, 1, 1, 1)  # Fundo branco
+                            RoundedRectangle:
+                                size: self.size
+                                pos: self.pos
+                                radius: [dp(15)]
 
-                    OndografoConfig:
-                        nome: "TGL"
+                        Label:
+                            text: "Estação Meteorológica "
+                            font_size: "22sp"
+                            color: (0.02, 0.29, 0.61, 1)  # Azul escuro, igual ao das outras seções
+                            bold: True
+                            halign: 'center'
+                            valign: 'middle'
+                            size_hint_y: None
+                            height: dp(40)
 
-                    OndografoConfig:
-                        nome: "TPD"
+                        GridLayout:
+                            cols: 2
+                            spacing: dp(10)
+                            size_hint_y: None
+                            height: self.minimum_height
 
-                    OndografoConfig:
-                        nome: "TPM"
+                            Label:
+                                text: "Ventos"
+                                font_size: "18sp"
+                                color: (0.02, 0.29, 0.61, 1)  # Azul escuro, igual às outras seções
+                                halign: 'left'
+                                valign: 'middle'
+                                size_hint_y: None
+                                height: dp(40)
 
-<BoiaConfig@BoxLayout>:
-    codigo_boia: ""
-    orientation: 'vertical'
-    size_hint_y: None
-    height: self.minimum_height
-    padding: dp(15)
-    spacing: dp(12)
-    canvas.before:
-        Color:
-            rgba: (0, 0, 0, 0.2)  # Cor da sombra (preto com 20% de opacidade)
-        RoundedRectangle:
-            size: [self.width + dp(6), self.height + dp(6)]  # Faz a sombra ligeiramente maior
-            pos: [self.x - dp(3), self.y - dp(3)]  # Posiciona a sombra um pouco atrás
-            radius: [dp(18)]  # Bordas arredondadas
+                            StyledCheckbox:
+                                id: chkbx_estacao_ventos
+                                on_state: app.toggle_parameter('Estação Meteorológica', 'Ventos', self.state)
+                                color_inactive: "blue"
 
-        Color:
-            rgba: (1, 1, 1, 1)  # Fundo branco
-        RoundedRectangle:
-            size: self.size
-            pos: self.pos
-            radius: [dp(15)]
+                    # Ondógrafo Píer II
+                    BoxLayout:
+                        orientation: 'vertical'
+                        size_hint_y: None
+                        height: self.minimum_height
+                        padding: dp(15)
+                        spacing: dp(12)
+                        canvas.before:
+                            Color:
+                                rgba: (0, 0, 0, 0.2)  # Cor da sombra (preto com 20% de opacidade)
+                            RoundedRectangle:
+                                size: [self.width + dp(6), self.height + dp(6)]  # Faz a sombra ligeiramente maior
+                                pos: [self.x - dp(3), self.y - dp(3)]  # Posiciona a sombra um pouco atrás
+                                radius: [dp(18)]  # Bordas arredondadas
 
+                            Color:
+                                rgba: (1, 1, 1, 1)  # Fundo branco
+                            RoundedRectangle:
+                                size: self.size
+                                pos: self.pos
+                                radius: [dp(15)]
 
-    Label:
-        text: "Boia " + root.codigo_boia
-        font_size: "22sp"
-        color: (0.02, 0.29, 0.61, 1)  # Azul de fundo
-        bold: True
-        halign: 'center'
-        valign: 'middle'
-        size_hint_y: None
-        height: dp(40)
+                        Label:
+                            text: "Ondógrafo Píer II"
+                            font_size: "22sp"
+                            color: (0.02, 0.29, 0.61, 1)  # Azul escuro, igual às outras seções
+                            bold: True
+                            halign: 'center'
+                            valign: 'middle'
+                            size_hint_y: None
+                            height: dp(40)
 
-    GridLayout:
-        cols: 2
-        spacing: dp(10)
-        size_hint_y: None
-        height: self.minimum_height
+                        GridLayout:
+                            cols: 2
+                            spacing: dp(10)
+                            size_hint_y: None
+                            height: self.minimum_height
 
-        Label:
-            text: "Corrente Fundo"
-            font_size: "18sp"
-            color: (0.02, 0.29, 0.61, 1)  # Azul de fundo
-            halign: 'left'
-            valign: 'middle'
-            size_hint_y: None
-            height: dp(40)
+                            Label:
+                                text: "Altura Significativa de Onda"
+                                font_size: "18sp"
+                                color: (0.02, 0.29, 0.61, 1)  # Azul escuro, igual às outras seções
+                                halign: 'left'
+                                valign: 'middle'
+                                size_hint_y: None
+                                height: dp(40)
 
-        StyledCheckbox:
-            id: checkbox_fundo
-            active_color: (0.2, 0.6, 1, 1)  # Azul vibrante quando ativo
-            inactive_color: (1, 1, 1, 1)  # Branco quando inativo
-            on_state: app.toggle_parameter('Boia ' + root.codigo_boia, 'Corrente Fundo', self.state)
-            color_inactive: "blue"
+                            StyledCheckbox:
+                                id: chkbx_pii_hm0
+                                on_state: app.toggle_parameter('Ondógrafo Píer II', 'Altura Significativa de Onda', self.state)
+                                color_inactive: "blue"
 
-        Label:
-            text: "Corrente Meio"
-            font_size: "18sp"
-            color: (0.02, 0.29, 0.61, 1)
-            halign: 'left'
-            valign: 'middle'
-            size_hint_y: None
-            height: dp(40)
+                            Label:
+                                text: "Altura Máxima"
+                                font_size: "18sp"
+                                color: (0.02, 0.29, 0.61, 1)  # Azul escuro, igual às outras seções
+                                halign: 'left'
+                                valign: 'middle'
+                                size_hint_y: None
+                                height: dp(40)
 
-        StyledCheckbox:
-            on_state: app.toggle_parameter('Boia ' + root.codigo_boia, 'Corrente Meio', self.state)
-            color_inactive: "blue"
+                            StyledCheckbox:
+                                id: chkbx_pii_hmax
+                                on_state: app.toggle_parameter('Ondógrafo Píer II', 'Altura Máxima', self.state)
+                                color_inactive: "blue"
 
-        Label:
-            text: "Corrente Superfície"
-            font_size: "18sp"
-            color: (0.02, 0.29, 0.61, 1)
-            halign: 'left'
-            valign: 'middle'
-            size_hint_y: None
-            height: dp(40)
+                            Label:
+                                text: "Período"
+                                font_size: "18sp"
+                                color: (0.02, 0.29, 0.61, 1)  # Azul escuro, igual às outras seções
+                                halign: 'left'
+                                valign: 'middle'
+                                size_hint_y: None
+                                height: dp(40)
 
-        StyledCheckbox:
-            on_state: app.toggle_parameter('Boia ' + root.codigo_boia, 'Corrente Superfície', self.state)
-            color_inactive: "blue"
+                            StyledCheckbox:
+                                id: chkbx_pii_tp
+                                on_state: app.toggle_parameter('Ondógrafo Píer II', 'Período', self.state)
+                                color_inactive: "blue"
+                    # Ondógrafo TGL
+                    BoxLayout:
+                        nome: "Ondógrafo TGL"
+                        orientation: 'vertical'
+                        size_hint_y: None
+                        height: self.minimum_height
+                        padding: dp(15)
+                        spacing: dp(12)
+                        canvas.before:
+                            Color:
+                                rgba: (0, 0, 0, 0.2)  # Cor da sombra (preto com 20% de opacidade)
+                            RoundedRectangle:
+                                size: [self.width + dp(6), self.height + dp(6)]  # Faz a sombra ligeiramente maior
+                                pos: [self.x - dp(3), self.y - dp(3)]  # Posiciona a sombra um pouco atrás
+                                radius: [dp(18)]  # Bordas arredondadas
 
-        Label:
-            text: "Ondas"
-            font_size: "18sp"
-            color: (0.02, 0.29, 0.61, 1)
-            halign: 'left'
-            valign: 'middle'
-            size_hint_y: None
-            height: dp(40)
+                            Color:
+                                rgba: (1, 1, 1, 1)  # Fundo branco
+                            RoundedRectangle:
+                                size: self.size
+                                pos: self.pos
+                                radius: [dp(15)]
 
-        StyledCheckbox:
-            on_state: app.toggle_parameter('Boia ' + root.codigo_boia, 'Ondas', self.state)
-            color_inactive: "blue"
+                        Label:
+                            text: "Ondógrafo TGL"
+                            font_size: "22sp"
+                            color: (0.02, 0.29, 0.61, 1)
+                            bold: True
+                            halign: 'center'
+                            valign: 'middle'
+                            size_hint_y: None
+                            height: dp(40)
 
-        Label:
-            text: "Sea"
-            font_size: "18sp"
-            color: (0.02, 0.29, 0.61, 1)
-            halign: 'left'
-            valign: 'middle'
-            size_hint_y: None
-            height: dp(40)
+                        GridLayout:
+                            cols: 2
+                            spacing: dp(10)
+                            size_hint_y: None
+                            height: self.minimum_height
 
-        StyledCheckbox:
-            on_state: app.toggle_parameter('Boia ' + root.codigo_boia, 'Sea', self.state)
-            color_inactive: "blue"
+                            Label:
+                                text: "Altura Significativa de Onda"
+                                font_size: "18sp"
+                                color: (0.02, 0.29, 0.61, 1)
+                                halign: 'left'
+                                valign: 'middle'
+                                size_hint_y: None
+                                height: dp(40)
 
-        Label:
-            text: "Swell"
-            font_size: "18sp"
-            color: (0.02, 0.29, 0.61, 1)
-            halign: 'left'
-            valign: 'middle'
-            size_hint_y: None
-            height: dp(40)
+                            StyledCheckbox:
+                                id: chkbx_tgl_hm0
+                                on_state: app.toggle_parameter('Ondógrafo TGL', 'Altura Significativa de Onda', self.state)
+                                color_inactive: "blue"
 
-        StyledCheckbox:
-            on_state: app.toggle_parameter('Boia ' + root.codigo_boia, 'Swell', self.state)
-            color_inactive: "blue"
+                            Label:
+                                text: "Altura Máxima"
+                                font_size: "18sp"
+                                color: (0.02, 0.29, 0.61, 1)
+                                halign: 'left'
+                                valign: 'middle'
+                                size_hint_y: None
+                                height: dp(40)
 
+                            StyledCheckbox:
+                                id: chkbx_tgl_hmax
+                                on_state: app.toggle_parameter('Ondógrafo TGL', 'Altura Máxima', self.state)
+                                color_inactive: "blue"
 
+                            Label:
+                                text: "Período"
+                                font_size: "18sp"
+                                color: (0.02, 0.29, 0.61, 1)
+                                halign: 'left'
+                                valign: 'middle'
+                                size_hint_y: None
+                                height: dp(40)
 
+                            StyledCheckbox:
+                                id: chkbx_tgl_tp
+                                on_state: app.toggle_parameter('Ondógrafo TGL', 'Período', self.state)
+                                color_inactive: "blue"
+                    # Ondógrafo TPD
+                    BoxLayout:
+                        orientation: 'vertical'
+                        size_hint_y: None
+                        height: self.minimum_height
+                        padding: dp(15)
+                        spacing: dp(12)
+                        canvas.before:
+                            Color:
+                                rgba: (0, 0, 0, 0.2)  # Cor da sombra (preto com 20% de opacidade)
+                            RoundedRectangle:
+                                size: [self.width + dp(6), self.height + dp(6)]  # Faz a sombra ligeiramente maior
+                                pos: [self.x - dp(3), self.y - dp(3)]  # Posiciona a sombra um pouco atrás
+                                radius: [dp(18)]  # Bordas arredondadas
 
+                            Color:
+                                rgba: (1, 1, 1, 1)  # Fundo branco
+                            RoundedRectangle:
+                                size: self.size
+                                pos: self.pos
+                                radius: [dp(15)]
 
-<MaregrafoConfig@BoxLayout>:
-    codigo_maregrafo: ""
-    orientation: 'vertical'
-    size_hint_y: None
-    height: self.minimum_height
-    padding: dp(15)
-    spacing: dp(12)
-    canvas.before:
-        Color:
-            rgba: (0, 0, 0, 0.2)  # Cor da sombra (preto com 20% de opacidade)
-        RoundedRectangle:
-            size: [self.width + dp(6), self.height + dp(6)]  # Faz a sombra ligeiramente maior
-            pos: [self.x - dp(3), self.y - dp(3)]  # Posiciona a sombra um pouco atrás
-            radius: [dp(18)]  # Bordas arredondadas
+                        Label:
+                            text: "Ondógrafo TPD"
+                            font_size: "22sp"
+                            color: (0.02, 0.29, 0.61, 1)
+                            bold: True
+                            halign: 'center'
+                            valign: 'middle'
+                            size_hint_y: None
+                            height: dp(40)
 
-        Color:
-            rgba: (1, 1, 1, 1)  # Fundo branco
-        RoundedRectangle:
-            size: self.size
-            pos: self.pos
-            radius: [dp(15)]
+                        GridLayout:
+                            cols: 2
+                            spacing: dp(10)
+                            size_hint_y: None
+                            height: self.minimum_height
 
-    Label:
-        text: "Marégrafo "
-        font_size: "22sp"
-        color: (0.02, 0.29, 0.61, 1)  # Azul de fundo
-        bold: True
-        halign: 'center'
-        valign: 'middle'
-        size_hint_y: None
-        height: dp(40)
+                            Label:
+                                text: "Altura Significativa de Onda"
+                                font_size: "18sp"
+                                color: (0.02, 0.29, 0.61, 1)
+                                halign: 'left'
+                                valign: 'middle'
+                                size_hint_y: None
+                                height: dp(40)
 
-    GridLayout:
-        cols: 2
-        spacing: dp(10)
-        size_hint_y: None
-        height: self.minimum_height
+                            StyledCheckbox:
+                                id: chkbx_tpd_hm0
+                                on_state: app.toggle_parameter('Ondógrafo TPD', 'Altura Significativa de Onda', self.state)
+                                color_inactive: "blue"
 
-        Label:
-            text: "Nível do Mar"
-            font_size: "18sp"
-            color: (0.02, 0.29, 0.61, 1)  # Azul de fundo
-            halign: 'left'
-            valign: 'middle'
-            size_hint_y: None
-            height: dp(40)
+                            Label:
+                                text: "Altura Máxima"
+                                font_size: "18sp"
+                                color: (0.02, 0.29, 0.61, 1)
+                                halign: 'left'
+                                valign: 'middle'
+                                size_hint_y: None
+                                height: dp(40)
 
-        StyledCheckbox:
-            on_state: app.toggle_parameter('Marégrafo ' + root.codigo_maregrafo, 'Nível do Mar', self.state)
-            color_inactive: "blue"
+                            StyledCheckbox:
+                                id: chkbx_tpd_hmax
+                                on_state: app.toggle_parameter('Ondógrafo TPD', 'Altura Máxima', self.state)
+                                color_inactive: "blue"
 
+                            Label:
+                                text: "Período"
+                                font_size: "18sp"
+                                color: (0.02, 0.29, 0.61, 1)
+                                halign: 'left'
+                                valign: 'middle'
+                                size_hint_y: None
+                                height: dp(40)
 
-<EstacaoMeteorologicaConfig@BoxLayout>:
-    codigo_estacao: ""
-    orientation: 'vertical'
-    size_hint_y: None
-    height: self.minimum_height
-    padding: dp(15)
-    spacing: dp(12)
-    canvas.before:
-        Color:
-            rgba: (0, 0, 0, 0.2)  # Cor da sombra (preto com 20% de opacidade)
-        RoundedRectangle:
-            size: [self.width + dp(6), self.height + dp(6)]  # Faz a sombra ligeiramente maior
-            pos: [self.x - dp(3), self.y - dp(3)]  # Posiciona a sombra um pouco atrás
-            radius: [dp(18)]  # Bordas arredondadas
+                            StyledCheckbox:
+                                id: chkbx_tpd_tp
+                                on_state: app.toggle_parameter('Ondógrafo TPD', 'Período', self.state)
+                                color_inactive: "blue"
 
-        Color:
-            rgba: (1, 1, 1, 1)  # Fundo branco
-        RoundedRectangle:
-            size: self.size
-            pos: self.pos
-            radius: [dp(15)]
+                    # Ondógrafo TPM
+                    BoxLayout:
+                        orientation: 'vertical'
+                        size_hint_y: None
+                        height: self.minimum_height
+                        padding: dp(15)
+                        spacing: dp(12)
+                        canvas.before:
+                            Color:
+                                rgba: (0, 0, 0, 0.2)  # Cor da sombra (preto com 20% de opacidade)
+                            RoundedRectangle:
+                                size: [self.width + dp(6), self.height + dp(6)]  # Faz a sombra ligeiramente maior
+                                pos: [self.x - dp(3), self.y - dp(3)]  # Posiciona a sombra um pouco atrás
+                                radius: [dp(18)]  # Bordas arredondadas
 
-    Label:
-        text: "Estação Meteorológica "
-        font_size: "22sp"
-        color: (0.02, 0.29, 0.61, 1)  # Azul escuro, igual ao das outras seções
-        bold: True
-        halign: 'center'
-        valign: 'middle'
-        size_hint_y: None
-        height: dp(40)
+                            Color:
+                                rgba: (1, 1, 1, 1)  # Fundo branco
+                            RoundedRectangle:
+                                size: self.size
+                                pos: self.pos
+                                radius: [dp(15)]
 
-    GridLayout:
-        cols: 2
-        spacing: dp(10)
-        size_hint_y: None
-        height: self.minimum_height
+                        Label:
+                            text: "Ondógrafo TPM"
+                            font_size: "22sp"
+                            color: (0.02, 0.29, 0.61, 1)
+                            bold: True
+                            halign: 'center'
+                            valign: 'middle'
+                            size_hint_y: None
+                            height: dp(40)
 
-        Label:
-            text: "Ventos"
-            font_size: "18sp"
-            color: (0.02, 0.29, 0.61, 1)  # Azul escuro, igual às outras seções
-            halign: 'left'
-            valign: 'middle'
-            size_hint_y: None
-            height: dp(40)
+                        GridLayout:
+                            cols: 2
+                            spacing: dp(10)
+                            size_hint_y: None
+                            height: self.minimum_height
 
-        StyledCheckbox:
-            on_state: app.toggle_parameter('Estação Meteorológica ' + root.codigo_estacao, 'Ventos', self.state)
-            color_inactive: "blue"
+                            Label:
+                                text: "Altura Significativa de Onda"
+                                font_size: "18sp"
+                                color: (0.02, 0.29, 0.61, 1)
+                                halign: 'left'
+                                valign: 'middle'
+                                size_hint_y: None
+                                height: dp(40)
 
+                            StyledCheckbox:
+                                id: chkbx_tpm_hm0
+                                on_state: app.toggle_parameter('Ondógrafo TPM', 'Altura Significativa de Onda', self.state)
+                                color_inactive: "blue"
 
-                
-<OndografoConfig@BoxLayout>:
-    nome: ""
-    orientation: 'vertical'
-    size_hint_y: None
-    height: self.minimum_height
-    padding: dp(15)
-    spacing: dp(12)
-    canvas.before:
-        Color:
-            rgba: (0, 0, 0, 0.2)  # Cor da sombra (preto com 20% de opacidade)
-        RoundedRectangle:
-            size: [self.width + dp(6), self.height + dp(6)]  # Faz a sombra ligeiramente maior
-            pos: [self.x - dp(3), self.y - dp(3)]  # Posiciona a sombra um pouco atrás
-            radius: [dp(18)]  # Bordas arredondadas
+                            Label:
+                                text: "Altura Máxima"
+                                font_size: "18sp"
+                                color: (0.02, 0.29, 0.61, 1)
+                                halign: 'left'
+                                valign: 'middle'
+                                size_hint_y: None
+                                height: dp(40)
 
-        Color:
-            rgba: (1, 1, 1, 1)  # Fundo branco
-        RoundedRectangle:
-            size: self.size
-            pos: self.pos
-            radius: [dp(15)]
+                            StyledCheckbox:
+                                id: chkbx_tpm_hmax
+                                on_state: app.toggle_parameter('Ondógrafo TPM', 'Altura Máxima', self.state)
+                                color_inactive: "blue"
 
-    Label:
-        text: "Ondógrafo " + root.nome
-        font_size: "22sp"
-        color: (0.02, 0.29, 0.61, 1)  # Azul escuro, igual às outras seções
-        bold: True
-        halign: 'center'
-        valign: 'middle'
-        size_hint_y: None
-        height: dp(40)
+                            Label:
+                                text: "Período"
+                                font_size: "18sp"
+                                color: (0.02, 0.29, 0.61, 1)
+                                halign: 'left'
+                                valign: 'middle'
+                                size_hint_y: None
+                                height: dp(40)
 
-    GridLayout:
-        cols: 2
-        spacing: dp(10)
-        size_hint_y: None
-        height: self.minimum_height
-
-        Label:
-            text: "Altura Significativa de Onda"
-            font_size: "18sp"
-            color: (0.02, 0.29, 0.61, 1)  # Azul escuro, igual às outras seções
-            halign: 'left'
-            valign: 'middle'
-            size_hint_y: None
-            height: dp(40)
-
-        StyledCheckbox:
-            on_state: app.toggle_parameter('Ondógrafo ' + root.nome, 'Altura Significativa de Onda', self.state)
-            color_inactive: "blue"
-
-        Label:
-            text: "Altura Máxima"
-            font_size: "18sp"
-            color: (0.02, 0.29, 0.61, 1)  # Azul escuro, igual às outras seções
-            halign: 'left'
-            valign: 'middle'
-            size_hint_y: None
-            height: dp(40)
-
-        StyledCheckbox:
-            on_state: app.toggle_parameter('Ondógrafo ' + root.nome, 'Altura Máxima', self.state)
-            color_inactive: "blue"
-
-        Label:
-            text: "Período"
-            font_size: "18sp"
-            color: (0.02, 0.29, 0.61, 1)  # Azul escuro, igual às outras seções
-            halign: 'left'
-            valign: 'middle'
-            size_hint_y: None
-            height: dp(40)
-
-        StyledCheckbox:
-            on_state: app.toggle_parameter('Ondógrafo ' + root.nome, 'Período', self.state)
-            color_inactive: "blue"
+                            StyledCheckbox:
+                                id: chkbx_tpm_tp
+                                on_state: app.toggle_parameter('Ondógrafo TPM', 'Período', self.state)
+                                color_inactive: "blue"

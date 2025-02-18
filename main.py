@@ -3,12 +3,12 @@ from kivymd.uix.button import MDRectangleFlatButton
 from kivymd.uix.card import MDCard
 from kivymd.uix.screen import MDScreen, MDScreen
 from kivymd.uix.screenmanager import MDScreenManager
-# from kivymd.uix.selectioncontrol import MDCheckbox # usar para manipular as checkboxes
+from kivymd.uix.selectioncontrol import MDCheckbox
 from kivy.clock import Clock
 from kivy.config import Config
 from kivy.graphics import Color, Rectangle
 from kivy.lang import Builder
-from kivy.properties import ObjectProperty, StringProperty, BooleanProperty, NumericProperty
+from kivy.properties import ObjectProperty
 from kivy.uix.label import Label
 from plyer import storagepath
 from datetime import datetime
@@ -17,12 +17,12 @@ import requests
 import os
 import jwt
 from kivy.animation import Animation
-from kivymd.uix.selectioncontrol import MDCheckbox
 
 class StyledCheckbox(MDCheckbox):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.inactive_color = (1, 1, 1, 1)  # Fundo branco quando desmarcado
+        self.active_color = (0.2, 0.6, 1, 1)
         self.line_color_normal = (0.8, 0.8, 0.8, 1)  # Borda cinza claro antes de ser selecionado
 
     def animate_checkbox(self, state):
@@ -31,8 +31,6 @@ class StyledCheckbox(MDCheckbox):
         else:
             anim = Animation(active_color=(1, 1, 1, 1), duration=0.2)  # Mantém fundo branco quando desmarcado
         anim.start(self)
-
-
 
 Config.set('graphics', 'multisamples', '0')
 
@@ -54,7 +52,7 @@ def get_access_token():
     if os.path.exists(token_file_path):
         with open(token_file_path, 'r') as token_file:
             token = token_file.read()
-            print(f"Token recuperado: {token}")
+            print(f"JWT recuperado.")
             return token
     else:
         print("Nenhum token encontrado.")
@@ -370,7 +368,94 @@ class TelaLogin(MDScreen):
         self.ids.senha.text = ""
 
 class Configuracao(MDScreen):
-    pass
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        # apenas no primeiro carregamento precisa consultar os dados do arquivo JSON
+        self.first=True
+        self.dicionario_parametros = { # conforme os IDs das checkboxes em 'configuracao.kv'
+                    'Corrente Fundo': 'corrfundo',
+                    'Corrente Meio': 'corrmeio',
+                    'Corrente Superfície': 'corrsuperficie',
+                    'Ondas': 'ondas',
+                    'Sea': 'sea',
+                    'Swell': 'swell',
+                    'Nível do Mar': 'elevacao',
+                    'Ventos': 'ventos',
+                    'Altura Significativa de Onda': 'hm0',
+                    'Altura Máxima': 'hmax',
+                    'Período': 'tp'
+                }
+
+    def on_enter(self):
+        if self.first:
+            self.seleciona_chkbx()
+            self.first=False
+
+    def seleciona_chkbx(self):
+        app = MDApp.get_running_app()
+        id_base = 'chkbx_'
+        # Percorre cada um dos equipamentos selecionados
+        for equip in app.selected_parameters:
+            # adcp
+            if 'Boia' in equip:
+                if '04' in equip:
+                    id_equip = id_base+'b04_'
+                elif '08' in equip:
+                    id_equip = id_base+'b08_'
+                elif '10' in equip:
+                    id_equip = id_base+'b10_'
+            # maregrafo
+            elif 'Marégraf' in equip:
+                id_equip = id_base+'maregrafo'
+            # estação
+            elif 'Estação' in equip:
+                id_equip = id_base+'estacao_'
+            # ondografo
+            elif 'Ondógrafo' in equip:
+                if 'PII' in equip:
+                    id_equip = id_base+'pii_'
+                elif 'TGL' in equip:
+                    id_equip = id_base+'tgl_'
+                elif 'TPD' in equip:
+                    id_equip = id_base+'tpd_'
+                elif 'TPM' in equip:
+                    id_equip = id_base+'tpm_'
+            
+            for parametro in app.selected_parameters[equip]:
+                id_parametro = self.dicionario_parametros[parametro]
+                chkbx_id = f'{id_equip}{id_parametro}'
+                self.alterar_estado_checkbox(chkbx_id, 'down')
+        return
+
+    def listar_checkboxes(self):
+        checkboxes = []
+
+        # Percorre todos os IDs registrados
+        for key, widget in self.ids.items():
+            if isinstance(widget, StyledCheckbox):  # Verifica se o widget é uma StyledCheckbox
+                checkboxes.append(widget)
+                print(f'Checkbox encontrada: id={key}, estado atual={widget.state}')
+
+        print(f'Total de checkboxes encontradas: {len(checkboxes)}')
+        return checkboxes
+
+    def alterar_estado_checkbox(self, checkbox_id, novo_estado):
+        """
+        Altera o estado de uma checkbox específica.
+        :param checkbox_id: O ID da checkbox (string).
+        :param novo_estado: O novo estado ('down' para marcado, 'normal' para desmarcado).
+        """
+        if checkbox_id in self.ids:
+            checkbox = self.ids[checkbox_id]
+            if isinstance(checkbox, StyledCheckbox):
+                checkbox.state = novo_estado
+                print(f'Estado da checkbox {checkbox_id} alterado para {novo_estado}')
+            else:
+                print(f'O ID {checkbox_id} não é uma StyledCheckbox.')
+        else:
+            print(f'Checkbox com ID {checkbox_id} não encontrada.')
+
 
 class TelaCarregamento(MDScreen):
     def __init__(self, **kwargs):
