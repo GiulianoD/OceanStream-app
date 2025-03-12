@@ -428,18 +428,6 @@ class Configuracao(MDScreen):
                 self.alterar_estado_checkbox(chkbx_id, 'down')
         return
 
-    def listar_checkboxes(self):
-        checkboxes = []
-
-        # Percorre todos os IDs registrados
-        for key, widget in self.ids.items():
-            if isinstance(widget, StyledCheckbox):  # Verifica se o widget é uma StyledCheckbox
-                checkboxes.append(widget)
-                print(f'Checkbox encontrada: id={key}, estado atual={widget.state}')
-
-        print(f'Total de checkboxes encontradas: {len(checkboxes)}')
-        return checkboxes
-
     def alterar_estado_checkbox(self, checkbox_id, novo_estado):
         """
         Altera o estado de uma checkbox específica.
