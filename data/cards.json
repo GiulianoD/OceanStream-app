@@ -1,57 +1,88 @@
 {
     "nome": "Overview - Cards",
-    "atualizado_em": "2025-02-18 16:21:50.806652",
+    "atualizado_em": "2025-03-10 15:37:18.554715",
     "cartoes": [
         {
-            "maximize": false,
+            "maximize": true,
             "text": "Boia 04",
             "selecionado": [
-                "Ondas"
+                "Ondas",
+                "Corrente Fundo",
+                "Corrente Meio",
+                "Swell",
+                "Corrente Superfície",
+                "Sea"
             ]
         },
         {
-            "maximize": false,
+            "maximize": true,
             "text": "Boia 08",
             "selecionado": [
+                "Ondas",
                 "Corrente Fundo",
-                "Corrente Superfície"
+                "Corrente Meio",
+                "Swell",
+                "Corrente Superfície",
+                "Sea"
             ]
         },
         {
             "maximize": true,
             "text": "Boia 10",
             "selecionado": [
+                "Ondas",
+                "Corrente Fundo",
                 "Corrente Meio",
+                "Swell",
+                "Corrente Superfície",
                 "Sea"
             ]
         },
         {
             "maximize": true,
             "text": "Ondógrafo Píer II",
-            "selecionado": []
+            "selecionado": [
+                "Período",
+                "Altura Máxima",
+                "Altura Significativa de Onda"
+            ]
         },
         {
             "maximize": true,
             "text": "Ondógrafo TGL",
-            "selecionado": []
+            "selecionado": [
+                "Período",
+                "Altura Máxima",
+                "Altura Significativa de Onda"
+            ]
         },
         {
             "maximize": true,
             "text": "Ondógrafo TPD",
-            "selecionado": []
+            "selecionado": [
+                "Período",
+                "Altura Máxima",
+                "Altura Significativa de Onda"
+            ]
         },
         {
             "maximize": true,
             "text": "Ondógrafo TPM",
-            "selecionado": []
+            "selecionado": [
+                "Período",
+                "Altura Máxima",
+                "Altura Significativa de Onda"
+            ]
         },
         {
             "maximize": true,
             "text": "Marégrafo",
-            "selecionado": []
+            "selecionado": [
+                "Nível do Mar"
+            ]
         },
         {
-            "maximize": false,
+            "maximize": true,
             "text": "Estação Meteorológica",
             "selecionado": [
                 "Ventos"

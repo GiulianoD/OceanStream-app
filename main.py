@@ -84,17 +84,17 @@ def is_token_valid(token):
 
 # Mapeamento de parâmetros para imagens
 PARAMETROS_IMAGENS = {
-    "Corrente Fundo":               "res/placeholder/cardicon/corrente_fundo.png",
-    "Corrente Meio":                "res/placeholder/cardicon/corrente_meio.png",
-    "Corrente Superfície":          "res/placeholder/cardicon/corrente_superficie.png",
-    "Ondas":                        "res/placeholder/cardicon/ondas.png",
-    "Sea":                          "res/placeholder/cardicon/sea.png",
-    "Swell":                        "res/placeholder/cardicon/swell.png",
-    "Nível do Mar":                 "res/placeholder/cardicon/nivel_mar.png",
-    "Ventos":                       "res/placeholder/cardicon/ventos.png",
-    "Altura Significativa de Onda": "res/placeholder/cardicon/altura_onda.png",
-    "Altura Máxima":                "res/placeholder/cardicon/altura_maxima.png",
-    "Período":                      "res/placeholder/cardicon/periodo.png",
+    "Corrente Fundo":               "res/corrente-seta-direita.png",
+    "Corrente Meio":                "res/corrente-seta-direita.png",
+    "Corrente Superfície":          "res/corrente-seta-direita.png",
+    "Ondas":                        "res/Onda - oceanstream.png",
+    "Sea":                          "res/Onda - oceanstream.png",
+    "Swell":                        "res/Onda - oceanstream.png",
+    "Nível do Mar":                 "res/Régua maregrafo com seta - oceanstream (2).png",
+    "Ventos":                       "res/Rosa dos ventos-oceanstream.png",
+    "Altura Significativa de Onda": "res/Onda - oceanstream.png",
+    "Altura Máxima":                "res/Onda - oceanstream.png",
+    "Período":                      "res/Onda - oceanstream.png",
 }
 
 def ler_arquivo_json(caminho_arquivo):
@@ -389,7 +389,7 @@ class Configuracao(MDScreen):
 
     def on_enter(self):
         if self.first:
-            self.seleciona_chkbx()
+            # self.seleciona_chkbx()
             self.first=False
 
     def seleciona_chkbx(self):
