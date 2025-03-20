@@ -1,0 +1,90 @@
+#:kivy 2.3.0
+
+<Suporte>:
+    FloatLayout:
+        canvas.before:
+            Color:
+                rgba: 1, 1, 1, 1
+            Rectangle:
+                source: 'res/gradient.png'
+                pos: self.pos
+                size: self.size
+
+        BoxLayout:
+            id: container
+            orientation: 'vertical'
+            size_hint: (1, 1)
+
+            # Header
+            FloatLayout:
+                size_hint: (1, None)
+                height: dp(80)
+                
+                MDIconButton:
+                    icon: "arrow-left"
+                    size_hint: (None, None)
+                    size: dp(36), dp(36)
+                    pos_hint: {"left": 1, "top": 1}
+                    theme_text_color: "Custom"
+                    text_color: (1, 1, 1, 1)
+                    on_release: app.gerenciador.current = 'overview'
+
+                Label:
+                    text: 'Boia 04 Corrente'
+                    font_size: 30
+                    bold: True
+                    color: utils.get_color_from_hex('#FFFFFF')
+                    size_hint: (1, None)
+                    pos_hint: {"center_x": 0.5, "top": 1}
+                    halign: "center"
+                    valign: "middle"
+
+            # Card branco com tabela
+            MDCard:
+                size_hint: (1, 1)
+                elevation: 4
+                radius: [60, 60, 0, 0]
+                md_bg_color: utils.get_color_from_hex('#FFFFFF')
+                pos_hint: {'center_x': 0.5}
+                padding: [30, 30, 30, 0]
+                
+                BoxLayout:
+
+                    orientation: 'vertical'
+
+                    # Seleciona datetime
+                    BoxLayout:
+                        id: box_dt
+                        size_hint_y: None
+                        height: dp(50)
+                        spacing: dp(10)
+
+                    # Define header
+                    GridLayout:
+                        id: header_table
+                        size_hint_y: None
+                        height: dp(40)
+                        spacing: dp(5)
+                        canvas.before:
+                            Color:
+                                rgba: 0.8, 0.8, 0.8, 1  # Cinza mais escuro para diferenciar
+                            Rectangle:
+                                pos: self.pos
+                                size: self.size
+
+                    # Linhas de dados
+                    ScrollView:
+                        GridLayout:
+                            id: data_table
+                            size_hint_y: None
+                            height: self.minimum_height
+                            row_default_height: dp(40)
+                            spacing: dp(5)
+
+                            canvas.before:
+                                Color:
+                                    rgba: 0.9, 0.9, 0.9, 1  # Cor de fundo cinza claro
+                                Rectangle:
+                                    pos: self.pos
+                                    size: self.size
+

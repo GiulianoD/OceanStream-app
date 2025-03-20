@@ -17,6 +17,19 @@ import requests
 import os
 import jwt
 from kivy.animation import Animation
+from kivy.properties import ObjectProperty, ListProperty
+import random
+from datetime import datetime, timedelta
+from kivymd.uix.textfield import MDTextField
+from kivymd.uix.button import MDRaisedButton
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.gridlayout import GridLayout
+from kivymd.uix.pickers import MDDatePicker
+from kivy.core.window import Window
+from kivy_garden.matplotlib import FigureCanvasKivyAgg
+import matplotlib.pyplot as plt
+from matplotlib.widgets import Cursor
+
 
 class StyledCheckbox(MDCheckbox):
     def __init__(self, **kwargs):
@@ -132,6 +145,7 @@ Builder.load_file('paginas/overview.kv')
 Builder.load_file('paginas/alertas.kv')
 Builder.load_file('paginas/login.kv')
 Builder.load_file('paginas/configuracao.kv')
+Builder.load_file('paginas/suporte.kv')
 
 class CardOverview(MDCard):
     offset_x = +50
@@ -332,6 +346,159 @@ class Overview(MDScreen):
 class Alertas(MDScreen):
     pass
 
+
+class Suporte(MDScreen):
+    data = ListProperty([])
+    cor_label = (0, 0, 0, 1)
+    is_landscape = False  # Estado atual da orientação
+    canvas_widget = None  # Armazena o widget do gráfico para remoção correta
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        Window.bind(on_resize=self.detect_orientation)  # Monitora mudanças na tela
+        self.build_ui()
+        self.generate_fake_data()
+
+    def detect_orientation(self, instance, width, height):
+        """Detecta a orientação da tela e atualiza a interface."""
+        landscape = width > height
+        if landscape != self.is_landscape:
+            self.is_landscape = landscape
+            self.update_view()  # Atualiza a interface para alternar entre tabela e gráfico
+
+    def update_view(self):
+        """Alterna entre tabela e gráfico dependendo da orientação da tela."""
+        layout = self.ids.container
+        
+        if self.is_landscape:
+            self.plot_graph()
+        else:
+            if self.canvas_widget:
+                layout.remove_widget(self.canvas_widget)  # Remove o gráfico corretamente
+                self.canvas_widget = None
+            
+            self.rebuild_table()
+
+    def rebuild_table(self):
+        """ Reconstrói a tabela quando a tela volta ao modo retrato."""
+        table_h = self.ids.header_table
+        table = self.ids.data_table
+        table.clear_widgets()
+        table_h.clear_widgets()
+        self.build_ui()
+        self.update_table()
+
+    def build_ui(self):
+        """ Adiciona os elementos da UI para a seleção de datas com calendário """
+        layout = self.ids.box_dt
+        layout.clear_widgets()  # Garante que a UI seja recriada corretamente
+        
+        self.start_date_btn = MDRaisedButton(
+            text="Selecionar Data Início",
+            on_release=self.show_start_date_picker)
+        self.end_date_btn = MDRaisedButton(
+            text="Selecionar Data Fim",
+            on_release=self.show_end_date_picker)
+        generate_button = MDRaisedButton(
+            text="Gerar Dados",
+            on_release=self.validate_dates)
+        
+        layout.add_widget(self.start_date_btn)
+        layout.add_widget(self.end_date_btn)
+        layout.add_widget(generate_button)
+    
+    def show_start_date_picker(self, instance):
+        """ Abre o seletor de data para a data de início """
+        date_dialog = MDDatePicker()
+        date_dialog.bind(on_save=self.set_start_date)
+        date_dialog.open()
+
+    def set_start_date(self, instance, value, date_range):
+        self.start_date_btn.text = value.strftime("%Y-%m-%d")
+    
+    def show_end_date_picker(self, instance):
+        """ Abre o seletor de data para a data de fim """
+        date_dialog = MDDatePicker()
+        date_dialog.bind(on_save=self.set_end_date)
+        date_dialog.open()
+
+    def set_end_date(self, instance, value, date_range):
+        self.end_date_btn.text = value.strftime("%Y-%m-%d")
+    
+    def generate_fake_data(self):
+        """ Gera dados fictícios para visualização """
+        base_time = datetime.now()
+        self.data.clear()
+        for i in range(10):  # Gerando 10 registros
+            timestamp = (base_time - timedelta(hours=i)).strftime('%Y-%m-%d %H:%M:%S')
+            velocidade = round(random.uniform(0.5, 3.0), 2)
+            direcao = random.randint(0, 360)
+            self.data.append([timestamp, str(velocidade), str(direcao)])
+        self.update_table()
+
+    def update_table(self):
+        """ Atualiza a tabela com os dados """
+        table_h = self.ids.header_table
+        table = self.ids.data_table
+        table.clear_widgets()
+        table_h.clear_widgets()
+
+        # Adiciona o cabeçalho
+        table.cols = 3
+        table_h.cols = 3
+        table_h.add_widget(Label(text="TimeStamp", bold=True, color=self.cor_label))
+        table_h.add_widget(Label(text="Velocidade (Kn)", bold=True, color=self.cor_label))
+        table_h.add_widget(Label(text="Direção (º)", bold=True, color=self.cor_label))
+
+        # Adiciona os dados
+        for row in self.data:
+            for cell in row:
+                table.add_widget(Label(text=cell, color=self.cor_label))
+    
+    def validate_dates(self, instance):
+        """ Valida o intervalo de datas selecionado pelo usuário e atualiza os dados """
+        start_date = self.start_date_btn.text
+        end_date = self.end_date_btn.text
+        try:
+            start = datetime.strptime(start_date, "%Y-%m-%d")
+            end = datetime.strptime(end_date, "%Y-%m-%d")
+            if (end - start).days > 7:
+                self.end_date_btn.text = "Erro: Máx. 7 dias"
+            else:
+                self.generate_fake_data()
+        except ValueError:
+            self.start_date_btn.text = "Selecionar Data Início"
+            self.end_date_btn.text = "Selecionar Data Fim"
+
+    def plot_graph(self):
+        """Gera um gráfico com Velocidade e Direção interativo."""
+        if not self.data:
+            return
+
+        timestamps = [row[0] for row in self.data]
+        velocidades = [float(row[1]) for row in self.data]
+        direcoes = [float(row[2]) for row in self.data]
+
+        fig, ax = plt.subplots()
+        ax.plot(timestamps, velocidades, marker="o", linestyle="-", color="blue", label="Velocidade (Kn)")
+        ax.plot(timestamps, direcoes, marker="s", linestyle="--", color="red", label="Direção (º)")
+        ax.set_title("Velocidade e Direção da Corrente")
+        ax.set_xlabel("Tempo")
+        ax.set_ylabel("Valor")
+        ax.legend()
+        ax.grid()
+
+        # Adiciona um cursor interativo para exibir valores específicos ao tocar na tela
+        cursor = Cursor(ax, useblit=True, color='black', linewidth=1)
+        
+        if self.canvas_widget:
+            self.ids.container.remove_widget(self.canvas_widget)  # Remove o gráfico anterior corretamente
+        
+        self.canvas_widget = FigureCanvasKivyAgg(fig)
+        self.ids.container.add_widget(self.canvas_widget)  # Exibe o gráfico na tela
+
+
+
 class TelaLogin(MDScreen):
     email = ObjectProperty(None)
     senha = ObjectProperty(None)
@@ -483,6 +650,7 @@ class OceanStream(MDApp):
         self.gerenciador.add_widget(Alertas(name='alertas'))
         self.gerenciador.add_widget(TelaLogin(name='login'))
         self.gerenciador.add_widget(Configuracao(name='configuracao'))
+        self.gerenciador.add_widget(Suporte(name='suporte'))
 
         self.gerenciador.current = 'load'
 
