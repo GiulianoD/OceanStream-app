@@ -24,6 +24,7 @@ from kivy.animation import Animation
 from kivy.core.window import Window
 from kivy_garden.matplotlib import FigureCanvasKivyAgg
 import matplotlib.pyplot as plt
+from matplotlib.widgets import Cursor
 
 class StyledCheckbox(MDCheckbox):
     def __init__(self, **kwargs):
@@ -536,6 +537,7 @@ class Equipamento(MDScreen):
     data = ListProperty([])
     cor_label = (0, 0, 0, 1)
     is_landscape = False  # Estado atual da orientação
+    canvas_widget = None  # Armazena o widget do gráfico para remoção correta
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -547,7 +549,6 @@ class Equipamento(MDScreen):
         self.req_api(start_date, end_date)
 
     def detect_orientation(self, instance, width, height):
-        return
         """Detecta a orientação da tela e atualiza a interface."""
         landscape = width > height
         if landscape != self.is_landscape:
@@ -557,13 +558,25 @@ class Equipamento(MDScreen):
     def update_view(self):
         """Alterna entre tabela e gráfico dependendo da orientação da tela."""
         layout = self.ids.container
-        layout.clear_widgets()  # Remove widgets antigos
-
+        
         if self.is_landscape:
             self.plot_graph()
         else:
-            self.build_ui()
-            self.update_table()
+            if self.canvas_widget:
+                layout.remove_widget(self.canvas_widget)  # Remove o gráfico corretamente
+                self.canvas_widget = None
+            
+            self.rebuild_table()
+
+    def rebuild_table(self):
+        """ Reconstrói a tabela quando a tela volta ao modo retrato."""
+        table_h = self.ids.header_table
+        table = self.ids.data_table
+        table.clear_widgets()
+        table_h.clear_widgets()
+        self.build_ui()
+        self.update_table()
+
 
     def build_ui(self):
         """ Adiciona os elementos da UI para a seleção de datas com calendário """
@@ -739,22 +752,31 @@ class Equipamento(MDScreen):
             self.end_date_btn.text = "Selecionar Data Fim"
 
     def plot_graph(self):
-        """Gera um gráfico a partir dos dados da tabela."""
+        """Gera um gráfico com Velocidade e Direção interativo."""
         if not self.data:
             return
 
         timestamps = [row[0] for row in self.data]
         velocidades = [float(row[1]) for row in self.data]
+        direcoes = [float(row[2]) for row in self.data]
 
         fig, ax = plt.subplots()
-        ax.plot(timestamps, velocidades, marker="o", linestyle="-", color="blue")
-        ax.set_title("Velocidade da Corrente")
+        ax.plot(timestamps, velocidades, marker="o", linestyle="-", color="blue", label="Velocidade (Kn)")
+        ax.plot(timestamps, direcoes, marker="s", linestyle="--", color="red", label="Direção (º)")
+        ax.set_title("Velocidade e Direção da Corrente")
         ax.set_xlabel("Tempo")
-        ax.set_ylabel("Velocidade (Kn)")
+        ax.set_ylabel("Valor")
+        ax.legend()
         ax.grid()
 
-        canvas = FigureCanvasKivyAgg(fig)
-        self.ids.container.add_widget(canvas)  # Exibe o gráfico na tela
+        # Adiciona um cursor interativo para exibir valores específicos ao tocar na tela
+        cursor = Cursor(ax, useblit=True, color='black', linewidth=1)
+        
+        if self.canvas_widget:
+            self.ids.container.remove_widget(self.canvas_widget)  # Remove o gráfico anterior corretamente
+        
+        self.canvas_widget = FigureCanvasKivyAgg(fig)
+        self.ids.container.add_widget(self.canvas_widget)  # Exibe o gráfico na tela
 
 class TelaLogin(MDScreen):
     email = ObjectProperty(None)
