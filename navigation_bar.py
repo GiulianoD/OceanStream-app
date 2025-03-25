@@ -39,7 +39,10 @@ class NavigationBar(MDBoxLayout):
             Color(1, 1, 1, 1)  # Cor branca
             self.circle = Ellipse(
                 size=(dp(100), dp(100)),  # Tamanho do círculo
-                pos=(self.toolbar.x + (self.toolbar.width - dp(100)) / 2, self.toolbar.top - dp(50))  # Posição ajustada
+                pos=(
+                    self.toolbar.x + (self.toolbar.width - dp(100)) / 2,
+                    self.toolbar.top - dp(50)
+                    )
             )
 
         # Substitui o botão de expansão por um botão com a logo do app
@@ -50,8 +53,7 @@ class NavigationBar(MDBoxLayout):
             icon_size="80sp",
             theme_text_color="Custom",
             text_color=(0.02, 0.58, 0.61, 1), # hex 04949C
-            pos_hint={'center_x': 0.5},
-            # pos=(20000, dp(1000)),  # Posição mais abaixo no layout
+            pos_hint={'center_x': 0.5, 'center_y': 0.1},
             on_release=self.toggle_toolbar
         )
 
@@ -87,10 +89,10 @@ class NavigationBar(MDBoxLayout):
         # Lista de opções com ícones e textos correspondentes
         options = [
             {"text": "Configuração", "icon": "cog", "screen": "configuracao"},
-            {"text": "Alertas", "icon": "bell", "screen": "alertas"},
+            # {"text": "Alertas", "icon": "bell", "screen": "alertas"},
             {"text": "Overview", "icon": "information", "screen": "overview"},
-            {"text": "Suporte", "icon": "help-circle", "screen": "suporte"},
-            {"text": "Ocorrência", "icon": "alert", "screen": "ocorrencia"},
+            {"text": "Equipamento", "icon": "help-circle", "screen": "equipamento"},
+            # {"text": "Ocorrência", "icon": "alert", "screen": "ocorrencia"},
         ]
 
         # Adicionar botões de opções e labels para os textos

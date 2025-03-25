@@ -1,6 +1,6 @@
 #:kivy 2.3.0
 
-<Suporte>:
+<Equipamento>:
     FloatLayout:
         canvas.before:
             Color:
@@ -30,7 +30,8 @@
                     on_release: app.gerenciador.current = 'overview'
 
                 Label:
-                    text: 'Boia 04 Corrente'
+                    id: titulo
+                    text: 'Equipamento'
                     font_size: 30
                     bold: True
                     color: utils.get_color_from_hex('#FFFFFF')
@@ -47,9 +48,8 @@
                 md_bg_color: utils.get_color_from_hex('#FFFFFF')
                 pos_hint: {'center_x': 0.5}
                 padding: [30, 30, 30, 0]
-                
-                BoxLayout:
 
+                BoxLayout:
                     orientation: 'vertical'
 
                     # Seleciona datetime
@@ -87,4 +87,3 @@
                                 Rectangle:
                                     pos: self.pos
                                     size: self.size
-

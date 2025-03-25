@@ -17,14 +17,7 @@ import requests
 import os
 import jwt
 from kivy.animation import Animation
-from kivy.properties import ObjectProperty, ListProperty
-import random
-from datetime import datetime, timedelta
-from kivymd.uix.textfield import MDTextField
-from kivymd.uix.button import MDRaisedButton
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.gridlayout import GridLayout
-from kivymd.uix.pickers import MDDatePicker
+
 from kivy.core.window import Window
 from kivy_garden.matplotlib import FigureCanvasKivyAgg
 import matplotlib.pyplot as plt
