@@ -577,6 +577,7 @@ class Equipamento(MDScreen):
         self.build_ui()
         self.update_table()
 
+
     def build_ui(self):
         """ Adiciona os elementos da UI para a seleção de datas com calendário """
         layout = self.ids.box_dt
