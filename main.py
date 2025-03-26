@@ -364,23 +364,11 @@ class Overview(MDScreen):
     def card_maximizado(self, card, config, str_datetime, idx):
         card.visible = True
         card.clear_widgets()
-
-        # Usando FloatLayout para posicionar as labels de forma precisa
         layout = FloatLayout(size_hint=(1, 1))
         card.add_widget(layout)
+        card.height = 120
+        return card
 
-        # Título do card (label superior)
-        label_superior = Label(
-            text=config["text"] + '      ',
-            color=(0, 0, 0, 1),
-            size_hint_y=None,  # Altura não ajustada automaticamente
-            size_hint_x=1,  # Largura ajustada para ocupar todo o espaço disponível
-            height=30,  # Altura fixa
-            pos_hint={"x": 0, "top": 1},  # Alinha à esquerda e no topo
-            halign="right",  # Alinha o texto à direita
-            text_size=(self.width - 20, None),  # Define o tamanho do texto com um espaço de 20 pixels à direita
-        )
-        layout.add_widget(label_superior)
 
         # Label inferior
         label_inferior = Label(
@@ -496,6 +484,25 @@ class Overview(MDScreen):
                 awac = False
 
             data_hora = data_hora[:-5]
+
+            # Header com nome do equipamento e data do último dado
+            header_card = MDCard(
+                size_hint=(1, None),
+                height=40,
+                md_bg_color=(0.9, 0.9, 0.95, 1),  # Cor clara para destacar
+                padding=[10, 5, 10, 5],
+                radius=[12, 12, 12, 12],
+                elevation=1,
+            )
+            header_label = Label(
+                text=f"{equipment} - último dado: {data_hora}",
+                color=(0, 0, 0, 1),
+                halign="left",
+                valign="middle"
+            )
+            header_card.add_widget(header_label)
+            card_container.add_widget(header_card)
+
 
             # parametros
             for param in selected_parameters[equipment]:
@@ -772,34 +779,74 @@ class Equipamento(MDScreen):
         if not self.data:
             return
 
-        timestamps = [row[0] for row in self.data]
+        import matplotlib.dates as mdates
+        from matplotlib.backend_bases import MouseEvent
+        from matplotlib.widgets import Cursor
+        from datetime import datetime
+
+        timestamps = [datetime.strptime(row[0], "%Y-%m-%d %H:%M:%S") for row in self.data]
         velocidades = [float(row[1]) for row in self.data]
         try:
             direcoes = [float(row[2]) for row in self.data]
         except IndexError:
-            direcoes = [0 for _ in self.data]  # Ou: direcoes = velocidades para evitar erro no gráfico
+            direcoes = [0 for _ in self.data]  # fallback
 
+        fig, ax = plt.subplots(figsize=(10, 4))
 
-        fig, ax = plt.subplots()
-        ax.plot(timestamps, velocidades, marker="o", linestyle="-", color="blue", label="Velocidade (Kn)")
-        ax.plot(timestamps, direcoes, marker="s", linestyle="--", color="red", label="Direção (º)")
+        line1, = ax.plot(timestamps, velocidades, marker="o", linestyle="-", color="blue", label="Velocidade (Kn)")
+        line2, = ax.plot(timestamps, direcoes, marker="s", linestyle="--", color="red", label="Direção (º)")
+
+        # Formatação do eixo X
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
+        ax.xaxis.set_major_locator(mdates.HourLocator(interval=2))
+        fig.autofmt_xdate()
+
         ax.set_title("Velocidade e Direção da Corrente")
         ax.set_xlabel("Tempo")
         ax.set_ylabel("Valor")
         ax.legend()
-        ax.grid()
+        ax.grid(True)
 
-        # Adiciona um cursor interativo para exibir valores específicos ao tocar na tela
+        # Cursor interativo
         cursor = Cursor(ax, useblit=True, color='black', linewidth=1)
 
+        # Interatividade com texto ao tocar
+        annot = ax.annotate("", xy=(0,0), xytext=(20,20), textcoords="offset points",
+                            bbox=dict(boxstyle="round", fc="w"), arrowprops=dict(arrowstyle="->"))
+        annot.set_visible(False)
+
+        def update_annot(ind, line):
+            x, y = line.get_data()
+            annot.xy = (x[ind[0]], y[ind[0]])
+            text = f"{x[ind[0]].strftime('%H:%M')}: {y[ind[0]]:.2f}"
+            annot.set_text(text)
+            annot.get_bbox_patch().set_facecolor('lightyellow')
+            annot.get_bbox_patch().set_alpha(0.8)
+
+        def hover(event):
+            vis = annot.get_visible()
+            if event.inaxes == ax:
+                for line in [line1, line2]:
+                    cont, ind = line.contains(event)
+                    if cont:
+                        update_annot(ind["ind"], line)
+                        annot.set_visible(True)
+                        fig.canvas.draw_idle()
+                        return
+            if vis:
+                annot.set_visible(False)
+                fig.canvas.draw_idle()
+
+        fig.canvas.mpl_connect("motion_notify_event", hover)
+
         if self.canvas_widget:
-            self.ids.container.remove_widget(self.canvas_widget)  # Remove o gráfico anterior corretamente
+            self.ids.container.remove_widget(self.canvas_widget)
 
         self.canvas_widget = FigureCanvasKivyAgg(fig)
         self.canvas_widget.size_hint_y = 1
         self.canvas_widget.pos_hint = {"center_x": 0.5, "center_y": 0.5}
 
-        self.ids.container.add_widget(self.canvas_widget)  # Exibe o gráfico na tela
+        self.ids.container.add_widget(self.canvas_widget)
 
     def on_enter(self):
         self.detect_orientation(Window, Window.width, Window.height)
