@@ -791,16 +791,16 @@ class Equipamento(MDScreen):
 
         # Adiciona um cursor interativo para exibir valores específicos ao tocar na tela
         cursor = Cursor(ax, useblit=True, color='black', linewidth=1)
-        
+
         if self.canvas_widget:
             self.ids.container.remove_widget(self.canvas_widget)  # Remove o gráfico anterior corretamente
-        
+
         self.canvas_widget = FigureCanvasKivyAgg(fig)
         self.canvas_widget.size_hint_y = 1
         self.canvas_widget.pos_hint = {"center_x": 0.5, "center_y": 0.5}
 
         self.ids.container.add_widget(self.canvas_widget)  # Exibe o gráfico na tela
-    
+
     def on_enter(self):
         self.detect_orientation(Window, Window.width, Window.height)
     
@@ -820,7 +820,6 @@ class Equipamento(MDScreen):
         box_dt.disabled = not visible
         header_table.opacity = 1 if visible else 0
         header_table.disabled = not visible
-
 
 class TelaLogin(MDScreen):
     email = ObjectProperty(None)
