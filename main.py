@@ -25,6 +25,7 @@ from kivy.core.window import Window
 from kivy_garden.matplotlib import FigureCanvasKivyAgg
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Cursor
+from kivy.metrics import dp
 
 class StyledCheckbox(MDCheckbox):
     def __init__(self, **kwargs):
@@ -547,6 +548,8 @@ class Equipamento(MDScreen):
         start_date = self.start_date_btn.text
         end_date = self.end_date_btn.text
         self.req_api(start_date, end_date)
+        self.update_view()  # Alterna a visualização de acordo com a orientação atual
+
 
     def detect_orientation(self, instance, width, height):
         """Detecta a orientação da tela e atualiza a interface."""
@@ -558,22 +561,33 @@ class Equipamento(MDScreen):
     def update_view(self):
         """Alterna entre tabela e gráfico dependendo da orientação da tela."""
         layout = self.ids.container
-        
+
+        # Remove todos os widgets do container (gráfico ou tabela)
+        if self.canvas_widget:
+            layout.remove_widget(self.canvas_widget)
+            self.canvas_widget = None
+
+        # Remove a tabela (reconstrói do zero depois, se necessário)
+        self.rebuild_table(clear_only=True)
+
         if self.is_landscape:
+            self.toggle_header_visibility(False)  # Esconde cabeçalho e filtros
             self.plot_graph()
         else:
-            if self.canvas_widget:
-                layout.remove_widget(self.canvas_widget)  # Remove o gráfico corretamente
-                self.canvas_widget = None
-            
+            self.toggle_header_visibility(True)   # Mostra tudo
             self.rebuild_table()
 
-    def rebuild_table(self):
-        """ Reconstrói a tabela quando a tela volta ao modo retrato."""
+    def rebuild_table(self, clear_only=False):
+        """Reconstrói a tabela ou apenas limpa, se necessário."""
         table_h = self.ids.header_table
         table = self.ids.data_table
+
         table.clear_widgets()
         table_h.clear_widgets()
+
+        if clear_only:
+            return
+
         self.build_ui()
         self.update_table()
 
@@ -581,6 +595,7 @@ class Equipamento(MDScreen):
     def build_ui(self):
         """ Adiciona os elementos da UI para a seleção de datas com calendário """
         layout = self.ids.box_dt
+        layout.clear_widgets()  # 🔴 ESSA LINHA É ESSENCIAL PARA EVITAR DUPLICAÇÃO
 
         # Dia de hoje
         hoje = datetime.now()
@@ -602,10 +617,11 @@ class Equipamento(MDScreen):
         generate_button = MDRaisedButton(
             text="Gerar Dados",
             on_release=self.validate_dates)
-        
+
         layout.add_widget(self.start_date_btn)
         layout.add_widget(self.end_date_btn)
         layout.add_widget(generate_button)
+
 
     def identifica_equip(self):
         self.equip = 'Ondografo-PII_tab_parametros' # placeholder
@@ -758,7 +774,11 @@ class Equipamento(MDScreen):
 
         timestamps = [row[0] for row in self.data]
         velocidades = [float(row[1]) for row in self.data]
-        direcoes = [float(row[2]) for row in self.data]
+        try:
+            direcoes = [float(row[2]) for row in self.data]
+        except IndexError:
+            direcoes = [0 for _ in self.data]  # Ou: direcoes = velocidades para evitar erro no gráfico
+
 
         fig, ax = plt.subplots()
         ax.plot(timestamps, velocidades, marker="o", linestyle="-", color="blue", label="Velocidade (Kn)")
@@ -776,7 +796,31 @@ class Equipamento(MDScreen):
             self.ids.container.remove_widget(self.canvas_widget)  # Remove o gráfico anterior corretamente
         
         self.canvas_widget = FigureCanvasKivyAgg(fig)
+        self.canvas_widget.size_hint_y = 1
+        self.canvas_widget.pos_hint = {"center_x": 0.5, "center_y": 0.5}
+
         self.ids.container.add_widget(self.canvas_widget)  # Exibe o gráfico na tela
+    
+    def on_enter(self):
+        self.detect_orientation(Window, Window.width, Window.height)
+    
+    def toggle_header_visibility(self, visible):
+        header = self.ids.get("titulo", None)
+        if header:
+            header.opacity = 1 if visible else 0
+            header.disabled = not visible
+
+        box_dt = self.ids.box_dt
+        header_table = self.ids.header_table
+
+        box_dt.height = dp(50) if visible else 0
+        header_table.height = dp(40) if visible else 0
+
+        box_dt.opacity = 1 if visible else 0
+        box_dt.disabled = not visible
+        header_table.opacity = 1 if visible else 0
+        header_table.disabled = not visible
+
 
 class TelaLogin(MDScreen):
     email = ObjectProperty(None)
