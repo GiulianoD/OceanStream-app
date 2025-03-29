@@ -148,7 +148,7 @@ class NavigationBar(MDBoxLayout):
         self.toolbar.add_widget(self.expand_button)  # Botão com a logo
         # self.toolbar.add_widget(self.menu_title)      # Título "Menu" abaixo do ícone de expansão
         self.toolbar.add_widget(self.options_box)     # Caixa de opções inicialmente vazia
-        self.add_widget(self.screen_manager)
+        # self.add_widget(self.screen_manager)
         self.add_widget(self.toolbar)
 
     def toggle_toolbar(self, instance):

@@ -12,6 +12,7 @@ from kivy.lang import Builder
 from kivy.properties import ObjectProperty, ListProperty
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.label import Label
+from kivy.uix.boxlayout import BoxLayout
 from plyer import storagepath
 from datetime import datetime, timedelta
 import json
@@ -215,6 +216,7 @@ def api_ultimosDados():
 
 ### Telas
 
+Builder.load_file('paginas/splash.kv')
 Builder.load_file('paginas/overview.kv')
 Builder.load_file('paginas/alertas.kv')
 Builder.load_file('paginas/login.kv')
@@ -873,14 +875,7 @@ class TelaLogin(MDScreen):
     senha = ObjectProperty(None)
 
     def on_enter(self):
-        token = get_access_token()
-        if token:
-            if is_token_valid(token):
-                print("Token válido, redirecionando...")
-                self.manager.current = 'overview'
-            else:
-                print("Token expirado, deletando...")
-                delete_access_token()
+        pass  # Splash já cuida do redirecionamento
 
     def submit(self):
         email = self.ids.email.text
@@ -990,7 +985,8 @@ class TelaCarregamento(MDScreen):
     def __init__(self, **kwargs):
         super(TelaCarregamento, self).__init__(**kwargs)
         self.add_widget(Label(text="OceanStream"))
-        Clock.schedule_once(self.verificar_token, 2.5)
+        # Clock.schedule_once(self.go_to_login, 6.0)
+
 
     def verificar_token(self, dt):
         try:
@@ -1001,6 +997,42 @@ class TelaCarregamento(MDScreen):
                 self.manager.current = 'login'
         except FileNotFoundError:
             print("Arquivo não encontrado.")
+
+class SplashScreen(MDScreen):
+    def on_kv_post(self, base_widget):
+        print(">>> SplashScreen carregada")
+        Clock.schedule_once(self.start_animation, 0.5)
+
+    def start_animation(self, *args):
+        print(">>> Iniciando animações...")
+        logo = self.ids.logo
+        title = self.ids.title
+
+        anim_logo = Animation(opacity=1, y=logo.y + 30, duration=2.4, t="out_quad")
+        anim_title = Animation(opacity=1, y=title.y + 30, duration=2.4, t="out_quad")
+
+        anim_logo.start(logo)
+        anim_title.start(title)
+
+        Clock.schedule_once(self.verifica_token, 5.5)  # <- espera suficiente
+
+    def verifica_token(self, *args):
+        print(">>> Verificando token")
+        app = MDApp.get_running_app()
+
+        # ✅ NÃO adicione a navigation_bar aqui!
+
+        token = get_access_token()
+        if is_token_valid(token):
+            print(">>> Token válido")
+            app.gerenciador.current = "overview"
+        else:
+            print(">>> Token inválido ou não existe")
+            delete_access_token()
+            app.gerenciador.current = "login"
+
+
+
 
 class GerenciadorTelas(MDScreenManager):
     pass
@@ -1020,8 +1052,10 @@ class OceanStream(MDApp):
                         self.selected_parameters[equip['text']].append(param)
 
     def build(self):
-        self.gerenciador = GerenciadorTelas()
+        self.root_layout = FloatLayout()  # FloatLayout para permitir sobreposição
 
+        self.gerenciador = GerenciadorTelas()
+        self.gerenciador.add_widget(SplashScreen(name='splash'))
         self.gerenciador.add_widget(TelaCarregamento(name='load'))
         self.gerenciador.add_widget(Overview(name='overview'))
         self.gerenciador.add_widget(Alertas(name='alertas'))
@@ -1029,13 +1063,19 @@ class OceanStream(MDApp):
         self.gerenciador.add_widget(Configuracao(name='configuracao'))
         self.gerenciador.add_widget(Equipamento(name='equipamento'))
 
-        self.gerenciador.current = 'load'
-
-        self.navigation_bar = NavigationBar(screen_manager=self.gerenciador, logout_callback=self.logout)
-
         self.gerenciador.bind(current=self.on_screen_change)
 
-        return self.navigation_bar
+        # Adiciona o gerenciador ocupando toda a tela
+        self.gerenciador.size_hint = (1, 1)
+        self.root_layout.add_widget(self.gerenciador)
+
+        # Inicialmente, navigation_bar é None
+        self.navigation_bar = None
+
+        self.gerenciador.current = 'splash'
+        return self.root_layout
+
+
 
     def toggle_parameter(self, equipment, parameter, state):
         if equipment not in self.selected_parameters:
@@ -1053,13 +1093,30 @@ class OceanStream(MDApp):
         if app.gerenciador.current == "overview":
             app.gerenciador.get_screen("overview").genereate_cards()
 
-    def on_screen_change(self, instance, value):
-        if value in ['login', 'configuracao', 'load']:
-            self.navigation_bar.toolbar.opacity = 0
-            self.navigation_bar.toolbar.disabled = True
+    def on_screen_change(self, instance, screen_name):
+        if screen_name == 'overview':
+            if not self.navigation_bar:
+                self.navigation_bar = NavigationBar(
+                    screen_manager=self.gerenciador,
+                    logout_callback=self.logout
+                )
+                # Garante que não adiciona duplicado
+                if self.navigation_bar.parent:
+                    self.root_layout.remove_widget(self.navigation_bar)
+
+                self.navigation_bar.size_hint = (1, None)
+                self.navigation_bar.height = dp(56)
+                self.navigation_bar.pos_hint = {"x": 0, "y": 0}
+                self.root_layout.add_widget(self.navigation_bar)
+
         else:
-            self.navigation_bar.toolbar.opacity = 1
-            self.navigation_bar.toolbar.disabled = False
+            if self.navigation_bar:
+                self.root_layout.clear_widgets()
+                self.root_layout.add_widget(self.gerenciador)
+                self.navigation_bar = None
+
+
+
 
     def logout(self):
         delete_access_token()
