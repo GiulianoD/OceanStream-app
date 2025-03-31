@@ -21,12 +21,14 @@ import requests
 import os
 import jwt
 from kivy.animation import Animation
-
 from kivy.core.window import Window
 from kivy_garden.matplotlib import FigureCanvasKivyAgg
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Cursor
 from kivy.metrics import dp
+from kivy.uix.image import Image
+from kivy.uix.scrollview import ScrollView  # se ainda não tiver
+
 
 class StyledCheckbox(MDCheckbox):
     def __init__(self, **kwargs):
@@ -224,93 +226,152 @@ Builder.load_file('paginas/configuracao.kv')
 Builder.load_file('paginas/equipamento.kv')
 
 class CardOverview(MDCard):
-    offset_x = 50  # Espaçamento horizontal inicial
-    offset_y = -10
-    mlt = 5  # Multiplicador para o tamanho da imagem
-    tamanho = (16 * mlt, 9 * mlt)  # Tamanho da imagem (16x9 proporção)
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.visible = True  # Propriedade para controlar a visibilidade das imagens
-        self.images = []  # Lista para armazenar as imagens do card
-        self.canvas_images = []  # Lista para armazenar os objetos Rectangle das imagens
-        self.top_labels = []  # Lista para armazenar os labels acima das imagens
-        self.bottom_labels = []  # Lista para armazenar os labels abaixo das imagens
+        self.tamanho = (80, 60)  # ou (width, height) ideal para suas imagens
 
-        # Vincula a atualização das imagens e labels às mudanças de posição e tamanho
-        self.bind(pos=self.update_rect, size=self.update_rect)
+    # def add_image(self, source, top_text, bottom_number):
+    #     """Adiciona uma imagem, uma label em cima e uma label em baixo ao card."""
+    #     with self.canvas.after:
+    #         # Define a cor (branca)
+    #         Color(1, 1, 1, 1)
+    #         # Cria o retângulo com a imagem
+    #         rect = Rectangle(source=source, pos=(self.x + self.offset_x, self.y + self.offset_y), size=self.tamanho)
+    #         self.canvas_images.append(rect)
+    #         self.images.append(source)
 
-    def add_image(self, source, top_text, bottom_number):
-        """Adiciona uma imagem, uma label em cima e uma label em baixo ao card."""
-        with self.canvas.after:
-            # Define a cor (branca)
-            Color(1, 1, 1, 1)
-            # Cria o retângulo com a imagem
-            rect = Rectangle(source=source, pos=(self.x + self.offset_x, self.y + self.offset_y), size=self.tamanho)
-            self.canvas_images.append(rect)
-            self.images.append(source)
+    #         # Adiciona a label em cima da imagem
+    #         top_label = Label(
+    #             text=top_text,
+    #             size_hint=(None, None),
+    #             size=(self.tamanho[0], 20),  # Largura da imagem, altura fixa
+    #             pos=(self.x + self.offset_x, self.y + self.offset_y + self.tamanho[1]),  # Acima da imagem
+    #             color=(0, 0, 0, 1),  # Cor preta
+    #             halign="center"  # Centraliza o texto horizontalmente
+    #         )
+    #         self.add_widget(top_label)
+    #         self.top_labels.append(top_label)
 
-            # Adiciona a label em cima da imagem
+    #         # Adiciona a label em baixo da imagem
+    #         bottom_label = Label(
+    #             text=str(bottom_number),
+    #             size_hint=(None, None),
+    #             size=(self.tamanho[0], 20),  # Largura da imagem, altura fixa
+    #             pos=(self.x + self.offset_x, self.y + self.offset_y - 20),  # Abaixo da imagem
+    #             color=(0, 0, 0, 1),  # Cor preta
+    #             halign="center"  # Centraliza o texto horizontalmente
+    #         )
+    #         self.add_widget(bottom_label)
+    #         self.bottom_labels.append(bottom_label)
+
+    # def update_rect(self, *args):
+    #     """Atualiza a posição e o tamanho das imagens e labels."""
+    #     if self.visible:
+    #         for i, (rect, top_label, bottom_label) in enumerate(zip(self.canvas_images, f, self.bottom_labels)):
+    #             # Calcula a posição Y para centralizar verticalmente
+    #             image_y = self.y + (self.height - self.tamanho[1]) / 2
+
+    #             # Posiciona a imagem
+    #             rect.pos = (
+    #                 self.x + self.offset_x + (i * (self.tamanho[0] + 10)),  # Posição X com espaçamento
+    #                 image_y  # Posição Y centralizada
+    #             )
+    #             rect.size = self.tamanho
+
+    #             # Posiciona a label em cima da imagem
+    #             top_label.font_size = 14
+    #             top_label.pos = (
+    #                 self.x + self.offset_x + (i * (self.tamanho[0] + 10)),  # Posição X com espaçamento
+    #                 image_y + self.tamanho[1] # Acima da imagem
+    #             )
+    #             top_label.size = (self.tamanho[0], 20)  # Largura da imagem, altura fixa
+
+    #             # Posiciona a label em baixo da imagem
+    #             bottom_label.font_size = 16
+    #             bottom_label.pos = (
+    #                 self.x + self.offset_x + (i * (self.tamanho[0] + 10)),  # Posição X com espaçamento
+    #                 image_y - 20  # Abaixo da imagem
+    #             )
+    #             bottom_label.size = (self.tamanho[0], 20)  # Largura da imagem, altura fixa
+    #     else:
+    #         # Oculta imagens e labels
+    #         for rect in self.canvas_images:
+    #             rect.size = (0, 0)
+    #         for top_label in self.top_labels:
+    #             top_label.size = (0, 0)
+    #         for bottom_label in self.bottom_labels:
+    #             bottom_label.size = (0, 0)
+
+    def add_image_scrollable(self, imagens_dados, target_layout=None):
+        """Adiciona uma linha horizontal scrollável de imagens com labels dentro de um layout específico (FloatLayout ou direto no Card)."""
+        altura_total = self.tamanho[1] + 60
+
+        scroll = ScrollView(
+            size_hint=(1, None),
+            height=altura_total,
+            scroll_type=['bars', 'content'],
+            bar_width=2,
+            do_scroll_x=True,
+            do_scroll_y=False,
+            pos_hint={"top": 1}
+        )
+
+        image_row = BoxLayout(
+            orientation='horizontal',
+            size_hint_x=None,
+            height=altura_total,
+                padding=[10, 20, 40, 10],  # esquerda, cima, direita, baixo
+            spacing=20
+        )
+        image_row.bind(minimum_width=image_row.setter('width'))
+
+        for source, top_text, bottom_text in imagens_dados:
+            layout = BoxLayout(
+                orientation='vertical',
+                size_hint=(None, 1),
+                width=self.tamanho[0],
+                spacing=5
+            )
+
             top_label = Label(
                 text=top_text,
-                size_hint=(None, None),
-                size=(self.tamanho[0], 20),  # Largura da imagem, altura fixa
-                pos=(self.x + self.offset_x, self.y + self.offset_y + self.tamanho[1]),  # Acima da imagem
-                color=(0, 0, 0, 1),  # Cor preta
-                halign="center"  # Centraliza o texto horizontalmente
+                size_hint=(1, None),
+                height=25, 
+                color=(0, 0, 0, 1)
             )
-            self.add_widget(top_label)
-            self.top_labels.append(top_label)
 
-            # Adiciona a label em baixo da imagem
+            image = Image(
+                source=source,
+                size_hint=(1, None),
+                height=self.tamanho[1],
+                allow_stretch=True,
+                keep_ratio=True
+            )
+
             bottom_label = Label(
-                text=str(bottom_number),
-                size_hint=(None, None),
-                size=(self.tamanho[0], 20),  # Largura da imagem, altura fixa
-                pos=(self.x + self.offset_x, self.y + self.offset_y - 20),  # Abaixo da imagem
-                color=(0, 0, 0, 1),  # Cor preta
-                halign="center"  # Centraliza o texto horizontalmente
+                text=str(bottom_text),
+                size_hint=(1, None),
+                height=20,
+                color=(0, 0, 0, 1)
             )
-            self.add_widget(bottom_label)
-            self.bottom_labels.append(bottom_label)
 
-    def update_rect(self, *args):
-        """Atualiza a posição e o tamanho das imagens e labels."""
-        if self.visible:
-            for i, (rect, top_label, bottom_label) in enumerate(zip(self.canvas_images, self.top_labels, self.bottom_labels)):
-                # Calcula a posição Y para centralizar verticalmente
-                image_y = self.y + (self.height - self.tamanho[1]) / 2
+            layout.add_widget(top_label)
+            layout.add_widget(image)
+            layout.add_widget(bottom_label)
 
-                # Posiciona a imagem
-                rect.pos = (
-                    self.x + self.offset_x + (i * (self.tamanho[0] + 10)),  # Posição X com espaçamento
-                    image_y  # Posição Y centralizada
-                )
-                rect.size = self.tamanho
+            image_row.add_widget(layout)
 
-                # Posiciona a label em cima da imagem
-                top_label.font_size = 14
-                top_label.pos = (
-                    self.x + self.offset_x + (i * (self.tamanho[0] + 10)),  # Posição X com espaçamento
-                    image_y + self.tamanho[1] # Acima da imagem
-                )
-                top_label.size = (self.tamanho[0], 20)  # Largura da imagem, altura fixa
+        scroll.add_widget(image_row)
 
-                # Posiciona a label em baixo da imagem
-                bottom_label.font_size = 16
-                bottom_label.pos = (
-                    self.x + self.offset_x + (i * (self.tamanho[0] + 10)),  # Posição X com espaçamento
-                    image_y - 20  # Abaixo da imagem
-                )
-                bottom_label.size = (self.tamanho[0], 20)  # Largura da imagem, altura fixa
+        if target_layout:
+            target_layout.add_widget(scroll)
         else:
-            # Oculta imagens e labels
-            for rect in self.canvas_images:
-                rect.size = (0, 0)
-            for top_label in self.top_labels:
-                top_label.size = (0, 0)
-            for bottom_label in self.bottom_labels:
-                bottom_label.size = (0, 0)
+            self.add_widget(scroll)
+            self.height = altura_total + 20
+
+
+
+
 
 class Overview(MDScreen):
     def __init__(self, **kwargs):
@@ -363,44 +424,26 @@ class Overview(MDScreen):
         self.reorganize_cards()
         salvar_cards(self.card_configs)
 
-    def card_maximizado(self, card, config, str_datetime, idx):
-        card.visible = True
+    def card_maximizado(self, card, config, str_datetime, idx, imagens_dados=None):
         card.clear_widgets()
-        layout = FloatLayout(size_hint=(1, 1))
-        card.add_widget(layout)
-        card.height = 120
-        return card
 
-
-        # Label inferior
-        label_inferior = Label(
-            text= str_datetime + '      ',  # Texto da label inferior
-            color=(0, 0, 0, 1),
-            font_size=15,
-            size_hint_y=None,  # Altura não ajustada automaticamente
-            size_hint_x=1,  # Largura ajustada para ocupar todo o espaço disponível
-            height=30,  # Altura fixa
-            pos_hint={"x": 0, "y": 0},  # Alinha à esquerda e na parte inferior
-            halign="right",  # Alinha o texto à direita
-            text_size=(self.width - 20, None),  # Define o tamanho do texto com um espaço de 20 pixels à direita
+        layout = BoxLayout(
+            orientation='vertical',
+            spacing=10,
+            padding=[10, 10, 10, 10],
+            size_hint=(1, None)
         )
-        layout.add_widget(label_inferior)
+        layout.bind(minimum_height=layout.setter("height"))
+        card.add_widget(layout)
 
-        card.height = 120
+
+        # 👇 AQUI entra a linha que você perguntou
+        if imagens_dados:
+            card.add_image_scrollable(imagens_dados, target_layout=layout)
+
+        card.height = layout.height + 20
         return card
 
-        # botão minimizar
-        # card.add_widget(
-        #     MDRectangleFlatButton(
-        #         text="Minimizar",
-        #         size_hint=(None, None),
-        #         size=(150, 40),
-        #         pos_hint={"center_x": 0.5, "center_y": 0.5},
-        #         on_release=lambda btn, i=idx: self.toggle_card(i),
-        #     )
-        # )
-        card.height = 120
-        return card
 
     def card_minimizado(self, card, config, str_datetime, idx):
         return self.card_maximizado(card, config, str_datetime, idx)
@@ -491,7 +534,7 @@ class Overview(MDScreen):
             header_card = MDCard(
                 size_hint=(1, None),
                 height=40,
-                md_bg_color=(0.9, 0.9, 0.95, 1),  # Cor clara para destacar
+                md_bg_color=(0.9, 0.9, 0.95, 1),
                 padding=[10, 5, 10, 5],
                 radius=[12, 12, 12, 12],
                 elevation=1,
@@ -505,31 +548,33 @@ class Overview(MDScreen):
             header_card.add_widget(header_label)
             card_container.add_widget(header_card)
 
+            # Cria o card e adiciona layout interno
+            new_card = CardOverview()
+            layout = FloatLayout(size_hint=(1, 1))
+            new_card.add_widget(layout)
 
-            # parametros
+            # Lista com as imagens e dados para scroll horizontal
+            imagens_dados = []
+
             for param in selected_parameters[equipment]:
                 if param in PARAMETROS_IMAGENS:
-                    # agora precisa identificar o parametro no dicionario
                     coluna = self.dicionario_parametros[param]
                     if awac:
-                        # primeiro identifica se vai referenciar corrente ou onda
                         if 'PNORW' in coluna:
-                            # onda
                             dado = f"{dados[1][coluna]:.2f}"
                         else:
-                            # corrente
                             dado = f"{dados[0][coluna]:.2f}"
                     else:
-                        # demais equipamentos
                         dado = f"{dados[coluna]:.2f}"
 
-                    new_card.add_image(PARAMETROS_IMAGENS[param], param, dado)  # Adiciona a legenda
+                    imagens_dados.append((PARAMETROS_IMAGENS[param], param, dado))
 
-            # Verifica o atributo "maximize" e define o estado inicial do card
-            if config.get("maximize", True):
-                new_card = self.card_maximizado(card=new_card, config=config, str_datetime=data_hora, idx=idx)
-            else:
-                new_card = self.card_minimizado(card=new_card, config=config, str_datetime='', idx=idx)
+                # Passa as imagens junto para que o card_maximizado possa adicioná-las
+                if config.get("maximize", True):
+                    new_card = self.card_maximizado(card=new_card, config=config, str_datetime=data_hora, idx=idx, imagens_dados=imagens_dados)
+                else:
+                    new_card = self.card_minimizado(card=new_card, config=config, str_datetime='', idx=idx)
+
 
             self.cards.append(new_card)
             card_container.add_widget(new_card)
