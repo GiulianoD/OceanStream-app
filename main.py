@@ -7,7 +7,6 @@ from kivymd.uix.screenmanager import MDScreenManager
 from kivymd.uix.selectioncontrol import MDCheckbox
 from kivy.clock import Clock
 from kivy.config import Config
-from kivy.graphics import Color, Rectangle
 from kivy.lang import Builder
 from kivy.properties import ObjectProperty, ListProperty
 from kivy.uix.floatlayout import FloatLayout
@@ -16,7 +15,6 @@ from kivy.uix.boxlayout import BoxLayout
 from plyer import storagepath
 from datetime import datetime, timedelta
 import json
-import random
 import requests
 import os
 import jwt
@@ -24,11 +22,9 @@ from kivy.animation import Animation
 from kivy.core.window import Window
 from kivy_garden.matplotlib import FigureCanvasKivyAgg
 import matplotlib.pyplot as plt
-from matplotlib.widgets import Cursor
 from kivy.metrics import dp
 from kivy.uix.image import Image
 from kivy.uix.scrollview import ScrollView  # se ainda não tiver
-
 
 class StyledCheckbox(MDCheckbox):
     def __init__(self, **kwargs):
@@ -230,78 +226,6 @@ class CardOverview(MDCard):
         super().__init__(**kwargs)
         self.tamanho = (80, 60)  # ou (width, height) ideal para suas imagens
 
-    # def add_image(self, source, top_text, bottom_number):
-    #     """Adiciona uma imagem, uma label em cima e uma label em baixo ao card."""
-    #     with self.canvas.after:
-    #         # Define a cor (branca)
-    #         Color(1, 1, 1, 1)
-    #         # Cria o retângulo com a imagem
-    #         rect = Rectangle(source=source, pos=(self.x + self.offset_x, self.y + self.offset_y), size=self.tamanho)
-    #         self.canvas_images.append(rect)
-    #         self.images.append(source)
-
-    #         # Adiciona a label em cima da imagem
-    #         top_label = Label(
-    #             text=top_text,
-    #             size_hint=(None, None),
-    #             size=(self.tamanho[0], 20),  # Largura da imagem, altura fixa
-    #             pos=(self.x + self.offset_x, self.y + self.offset_y + self.tamanho[1]),  # Acima da imagem
-    #             color=(0, 0, 0, 1),  # Cor preta
-    #             halign="center"  # Centraliza o texto horizontalmente
-    #         )
-    #         self.add_widget(top_label)
-    #         self.top_labels.append(top_label)
-
-    #         # Adiciona a label em baixo da imagem
-    #         bottom_label = Label(
-    #             text=str(bottom_number),
-    #             size_hint=(None, None),
-    #             size=(self.tamanho[0], 20),  # Largura da imagem, altura fixa
-    #             pos=(self.x + self.offset_x, self.y + self.offset_y - 20),  # Abaixo da imagem
-    #             color=(0, 0, 0, 1),  # Cor preta
-    #             halign="center"  # Centraliza o texto horizontalmente
-    #         )
-    #         self.add_widget(bottom_label)
-    #         self.bottom_labels.append(bottom_label)
-
-    # def update_rect(self, *args):
-    #     """Atualiza a posição e o tamanho das imagens e labels."""
-    #     if self.visible:
-    #         for i, (rect, top_label, bottom_label) in enumerate(zip(self.canvas_images, f, self.bottom_labels)):
-    #             # Calcula a posição Y para centralizar verticalmente
-    #             image_y = self.y + (self.height - self.tamanho[1]) / 2
-
-    #             # Posiciona a imagem
-    #             rect.pos = (
-    #                 self.x + self.offset_x + (i * (self.tamanho[0] + 10)),  # Posição X com espaçamento
-    #                 image_y  # Posição Y centralizada
-    #             )
-    #             rect.size = self.tamanho
-
-    #             # Posiciona a label em cima da imagem
-    #             top_label.font_size = 14
-    #             top_label.pos = (
-    #                 self.x + self.offset_x + (i * (self.tamanho[0] + 10)),  # Posição X com espaçamento
-    #                 image_y + self.tamanho[1] # Acima da imagem
-    #             )
-    #             top_label.size = (self.tamanho[0], 20)  # Largura da imagem, altura fixa
-
-    #             # Posiciona a label em baixo da imagem
-    #             bottom_label.font_size = 16
-    #             bottom_label.pos = (
-    #                 self.x + self.offset_x + (i * (self.tamanho[0] + 10)),  # Posição X com espaçamento
-    #                 image_y - 20  # Abaixo da imagem
-    #             )
-    #             bottom_label.size = (self.tamanho[0], 20)  # Largura da imagem, altura fixa
-    #     else:
-    #         # Oculta imagens e labels
-    #         for rect in self.canvas_images:
-    #             rect.size = (0, 0)
-    #         for top_label in self.top_labels:
-    #             top_label.size = (0, 0)
-    #         for bottom_label in self.bottom_labels:
-    #             bottom_label.size = (0, 0)
-
     def add_image_scrollable(self, imagens_dados, target_layout=None):
         """Adiciona uma linha horizontal scrollável de imagens com labels dentro de um layout específico (FloatLayout ou direto no Card)."""
         altura_total = self.tamanho[1] + 60
@@ -330,7 +254,7 @@ class CardOverview(MDCard):
                 orientation='vertical',
                 size_hint=(None, 1),
                 width=self.tamanho[0],
-                spacing=5
+                spacing=0
             )
 
             top_label = Label(
@@ -368,10 +292,6 @@ class CardOverview(MDCard):
         else:
             self.add_widget(scroll)
             self.height = altura_total + 20
-
-
-
-
 
 class Overview(MDScreen):
     def __init__(self, **kwargs):
@@ -436,14 +356,11 @@ class Overview(MDScreen):
         layout.bind(minimum_height=layout.setter("height"))
         card.add_widget(layout)
 
-
-        # 👇 AQUI entra a linha que você perguntou
         if imagens_dados:
             card.add_image_scrollable(imagens_dados, target_layout=layout)
 
         card.height = layout.height + 20
         return card
-
 
     def card_minimizado(self, card, config, str_datetime, idx):
         return self.card_maximizado(card, config, str_datetime, idx)
@@ -1075,9 +992,6 @@ class SplashScreen(MDScreen):
             print(">>> Token inválido ou não existe")
             delete_access_token()
             app.gerenciador.current = "login"
-
-
-
 
 class GerenciadorTelas(MDScreenManager):
     pass
