@@ -148,20 +148,18 @@ class NavigationBar(MDBoxLayout):
         # Alterna entre expandir e recolher a área de opções e o título "Menu"
         if self.options_box.height == 0:
             # Expande a área de opções e exibe o título "Menu"
-            self.options_box.add_widget(self.options_icons_box)
-            self.options_box.add_widget(self.logout_button)
+            if self.options_icons_box.parent is None:  # Only add if not already added
+                self.options_box.add_widget(self.options_icons_box)
+                self.options_box.add_widget(self.logout_button)
             anim_options = Animation(height=dp(150), d=0.3)  # Expande a altura das opções
             anim_toolbar = Animation(height=dp(206), d=0.3)  # Expande a altura total da toolbar
-            anim_title = Animation(opacity=1, d=0.3)         # Exibe o título "Menu"
+            # anim_title = Animation(opacity=1, d=0.3)         # Exibe o título "Menu"
             
         else:
             # Recolhe a área de opções e oculta o título "Menu"
             anim_options = Animation(height=0, d=0.3)
             anim_toolbar = Animation(height=dp(56), d=0.3)  # Retorna a altura total da toolbar para o inicial
-            anim_title = Animation(opacity=0, d=0.3)        # Oculta o título "Menu"
-
-            # Remove os widgets para que não possam ser clicados
-            self.options_box.clear_widgets()
+            # anim_title = Animation(opacity=0, d=0.3)        # Oculta o título "Menu"
 
         # Inicia animações
         anim_toolbar.start(self.toolbar)

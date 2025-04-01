@@ -791,7 +791,7 @@
 
                             # Precipitação
                             Label:
-                                text: "Precipitação"
+                                text: "Chuva"
                                 font_size: "18sp"
                                 color: (0.02, 0.29, 0.61, 1)  # Azul escuro, igual às outras seções
                                 halign: 'left'
@@ -799,7 +799,7 @@
                                 size_hint_y: None
                                 height: dp(40)
                             StyledCheckbox:
-                                id: chkbx_estacao_precipitacao
-                                on_state: app.toggle_parameter('Estação Meteorológica', 'Precipitação', self.state)
+                                id: chkbx_estacao_chuva
+                                on_state: app.toggle_parameter('Estação Meteorológica', 'Chuva', self.state)
                                 color_inactive: "blue"
 

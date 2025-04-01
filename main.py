@@ -62,7 +62,7 @@ PARAMETROS_IMAGENS = {
     "Vel. Vento":              "res/Pressão atmosférica - oceanstream.png",                           # Est.M
     "Rajada":                  "res/Pressão atmosférica - oceanstream.png",                           # Est.M
     "Dir. Vento":              "res/Rosa dos ventos - com direção de cor diferente-oceanstream.png",  # Est.M
-    "Precipitação":            "res/Chuva - oceanstream.png",                                         # Est.M
+    "Chuva":                   "res/Chuva - oceanstream.png",                                         # Est.M
 }
 
 def store_access_token(token):
@@ -315,7 +315,7 @@ class Overview(MDScreen):
                   'Vel. Vento' : 'Velocidade_Vento',
                       'Rajada' : 'Rajada_Vento',
                   'Dir. Vento' : 'Direcao_Vento',
-                'Precipitação' : 'Chuva'
+                       'Chuva' : 'Chuva'
         }
 
     def toggle_card(self, card_index):
@@ -498,9 +498,8 @@ class Overview(MDScreen):
             self.cards.append(new_card)
             card_container.add_widget(new_card)
 
-        blank_space = Widget(size_hint_y=None, height=20)
         # Adiciona espaço em branco para no final para a nav_bar não sobrepor o último card
-        card_container.add_widget(blank_space)
+        card_container.add_widget(Widget(size_hint_y=None, height=65))
 
         salvar_cards(self.card_configs)
 
@@ -717,7 +716,7 @@ class Equipamento(MDScreen):
             table_h.add_widget(Label(text="Vel. Vento", bold=True, color=self.cor_label))
             table_h.add_widget(Label(text="Rajada", bold=True, color=self.cor_label))
             table_h.add_widget(Label(text="Dir. Vento (°)", bold=True, color=self.cor_label))
-            table_h.add_widget(Label(text="Precipitação (mm)", bold=True, color=self.cor_label))
+            table_h.add_widget(Label(text="Chuva (mm)", bold=True, color=self.cor_label))
         if 'Maregrafo' in self.equip:
             table.cols = 2
             table_h.cols = 2
@@ -885,7 +884,7 @@ class Configuracao(MDScreen):
                   'Vel. Vento' : 'velvento',
                       'Rajada' : 'rajada',
                   'Dir. Vento' : 'dirvento',
-                'Precipitação' : 'precipitacao'
+                       'Chuva' : 'chuva'
         }
 
     def on_enter(self):
@@ -999,10 +998,9 @@ class SplashScreen(MDScreen):
             delete_access_token()
             app.gerenciador.current = "login"
 
+
 class GerenciadorTelas(MDScreenManager):
     pass
-
-# class
 
 class OceanStream(MDApp):
     def __init__(self, **kwargs):
@@ -1039,8 +1037,6 @@ class OceanStream(MDApp):
 
         self.gerenciador.current = 'splash'
         return self.root_layout
-
-
 
     def toggle_parameter(self, equipment, parameter, state):
         if equipment not in self.selected_parameters:
@@ -1080,12 +1076,10 @@ class OceanStream(MDApp):
                 self.root_layout.add_widget(self.gerenciador)
                 self.navigation_bar = None
 
-
-
-
     def logout(self):
         delete_access_token()
         self.gerenciador.current = 'login'
+
 
 if __name__ == '__main__':
     OceanStream().run()

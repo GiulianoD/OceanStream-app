@@ -1,16 +1,16 @@
 {
     "nome": "Overview - Cards",
-    "atualizado_em": "2025-04-01 16:07:51.449351",
+    "atualizado_em": "2025-04-01 16:47:09.900459",
     "cartoes": [
         {
             "maximize": true,
             "text": "Boia 10",
             "selecionado": [
-                "Vel. Corr.",
                 "Dir. Corr.",
                 "Altura Onda",
                 "Período Onda",
-                "Bateria"
+                "Bateria",
+                "Vel. Corr."
             ]
         },
         {
@@ -81,7 +81,7 @@
                 "Vel. Vento",
                 "Rajada",
                 "Dir. Vento",
-                "Precipitação"
+                "Chuva"
             ]
         }
     ]
