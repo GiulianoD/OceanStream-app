@@ -9,9 +9,10 @@ from kivy.clock import Clock
 from kivy.config import Config
 from kivy.lang import Builder
 from kivy.properties import ObjectProperty, ListProperty
+from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.label import Label
-from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.widget import Widget
 from plyer import storagepath
 from datetime import datetime, timedelta
 import json
@@ -359,7 +360,8 @@ class Overview(MDScreen):
         if imagens_dados:
             card.add_image_scrollable(imagens_dados, target_layout=layout)
 
-        card.height = layout.height + 20
+        # card.height = layout.height + 20
+        card.height = max(180, layout.height + 20)
         return card
 
     def card_minimizado(self, card, config, str_datetime, idx):
@@ -495,6 +497,10 @@ class Overview(MDScreen):
 
             self.cards.append(new_card)
             card_container.add_widget(new_card)
+
+        blank_space = Widget(size_hint_y=None, height=20)
+        # Adiciona espaço em branco para no final para a nav_bar não sobrepor o último card
+        card_container.add_widget(blank_space)
 
         salvar_cards(self.card_configs)
 

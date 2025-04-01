@@ -34,20 +34,10 @@ class NavigationBar(MDBoxLayout):
             )
             self.toolbar.bind(size=self.update_bg, pos=self.update_bg)
 
-        # Adicionar círculo branco abaixo da logo
-        with self.toolbar.canvas:
-            Color(1, 1, 1, 1)  # Cor branca
-            self.circle = Ellipse(
-                size=(dp(100), dp(100)),  # Tamanho do círculo
-                pos=(
-                    self.toolbar.x + (self.toolbar.width - dp(100)) / 2,
-                    self.toolbar.top - dp(50)
-                    )
-            )
-
         # Substitui o botão de expansão por um botão com a logo do app
         self.expand_button = MDIconButton(
-            icon="res/logo.png",
+            # icon="res/logo.png",
+            icon="res/logo_circulada.png",
             size_hint=(None, None),
             size=(dp(80), dp(80)),
             icon_size="80sp",
@@ -178,7 +168,6 @@ class NavigationBar(MDBoxLayout):
     def update_bg(self, *args):
         self.bg_rect.size = self.toolbar.size
         self.bg_rect.pos = self.toolbar.pos
-        self.circle.pos = (self.toolbar.center_x - dp(50), self.toolbar.height - dp(50))
 
     def switch_to_screen(self, screen_name):
         # Mudar para a tela especificada
