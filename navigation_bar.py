@@ -26,11 +26,11 @@ class NavigationBar(MDBoxLayout):
 
         # Adicionar fundo arredondado à toolbar
         with self.toolbar.canvas.before:
-            Color(0.89, 0.91, 0.97, 1)  # Cor #E4E9F7
+            Color(0.02, 0.58, 0.61, 1) 
             self.bg_rect = RoundedRectangle(
                 size=self.toolbar.size,
                 pos=self.toolbar.pos,
-                radius=[(20, 20), (20, 20), (0, 0), (0, 0)]  # Bordas arredondadas superiores
+                radius=[(36, 36), (36, 36), (0, 0), (0, 0)]  # Bordas laterais mais arredondadas
             )
             self.toolbar.bind(size=self.update_bg, pos=self.update_bg)
 
@@ -42,8 +42,8 @@ class NavigationBar(MDBoxLayout):
             size=(dp(80), dp(80)),
             icon_size="80sp",
             theme_text_color="Custom",
-            text_color=(0.02, 0.58, 0.61, 1), # hex 04949C
-            pos_hint={'center_x': 0.5, 'center_y': 0.1},
+            text_color=(1, 1, 1, 1), # hex 04949C
+            pos_hint={'center_x': 0.5, 'center_y': -0.4},
             on_release=self.toggle_toolbar
         )
 
@@ -81,7 +81,7 @@ class NavigationBar(MDBoxLayout):
             {"text": "Configuração", "icon": "cog", "screen": "configuracao"},
             # {"text": "Alertas", "icon": "bell", "screen": "alertas"},
             {"text": "Overview", "icon": "information", "screen": "overview"},
-            {"text": "Equipamento", "icon": "help-circle", "screen": "equipamento"},
+            {"text": "Equipamento", "icon": "access-point", "screen": "equipamento"},
             # {"text": "Ocorrência", "icon": "alert", "screen": "ocorrencia"},
         ]
 
@@ -96,15 +96,18 @@ class NavigationBar(MDBoxLayout):
                 pos_hint={"center_x": 0.5, "center_y": 0.5}
             )
 
-            # Configurar o botão de ícone
+            # Definir tamanho maior para certos ícones
+            icon_size = "60sp" if option["text"] in ["Configuração", "Overview", "Equipamento"] else "32sp"
+
             button = MDIconButton(
                 icon=option["icon"],
-                icon_size="32sp",
+                icon_size=icon_size,
                 theme_text_color="Custom",
-                text_color=(0.02, 0.58, 0.61, 1),  # Cor #04949C
+                text_color=(1, 1, 1, 1),
                 on_release=lambda x, screen=option["screen"]: self.switch_to_screen(screen),
-                pos_hint={"center_x": 0.5}  # Centralizar o ícone horizontalmente
-            )
+                pos_hint={"center_x": 0.5}
+)
+
 
             # Configurar o label abaixo do ícone
             label = Label(
@@ -114,7 +117,7 @@ class NavigationBar(MDBoxLayout):
                 valign="middle",
                 size_hint_y=None,
                 height=dp(20),
-                color=(0.44, 0.44, 0.44, 1),  # Cor #707070
+                color=(1, 1, 1, 1),  # Cor #707070
                 pos_hint={"center_x": 0.5}  # Centralizar o texto horizontalmente
             )
 
