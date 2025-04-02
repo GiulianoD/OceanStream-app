@@ -18,7 +18,7 @@
             # Header
             FloatLayout:
                 size_hint: (1, None)
-                height: dp(80)
+                height: dp(120)
                 
                 MDIconButton:
                     icon: "arrow-left"
@@ -39,6 +39,16 @@
                     pos_hint: {"center_x": 0.5, "top": 1}
                     halign: "center"
                     valign: "middle"
+                    height: dp(40)
+
+                Spinner:
+                    id: equip_spinner
+                    size_hint: (0.8, None)
+                    height: dp(40)
+                    pos_hint: {'center_x': 0.5, 'top': 0.7}
+                    text: "Selecione um equipamento"
+                    values: ["Boia 04 - Corrente","Boia 08 - Corrente","Boia 10 - Corrente","Boia 04 - Onda","Boia 08 - Onda","Boia 10 - Onda","Ondógrafo Píer-II","Ondógrafo TGL","Ondógrafo TPD","Ondógrafo TPM","Marégrafo","Estação Meteorológica"]
+                    on_text: root.equip_selected(self, self.text)
 
             # Card branco com tabela
             MDCard:

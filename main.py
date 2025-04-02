@@ -46,9 +46,6 @@ Config.set('graphics', 'multisamples', '0')
 
 from navigation_bar import NavigationBar  # Importando a barra de navegação
 
-### JWT
-JWT_FILE = "oceanstream.jwt"
-API_PRFX = "https://oceanstream-8b3329b99e40.herokuapp.com/"
 
 # Mapeamento de parâmetros para imagens
 PARAMETROS_IMAGENS = {
@@ -65,6 +62,24 @@ PARAMETROS_IMAGENS = {
     "Dir. Vento":              "res/Rosa dos ventos - com direção de cor diferente-oceanstream.png",  # Est.M
     "Chuva":                   "res/Chuva - oceanstream.png",                                         # Est.M
 }
+# Mapeamento dos equipamentos para os nomes das tabelas
+EQUIPAMENTOS_TABELAS = {
+    "Boia 04 - Corrente": "ADCP-Boia04_corrente",
+    "Boia 08 - Corrente": "ADCP-Boia08_corrente",
+    "Boia 10 - Corrente": "ADCP-Boia10_corrente",
+    "Boia 04 - Onda": "ADCP-Boia04_onda",
+    "Boia 08 - Onda": "ADCP-Boia08_onda",
+    "Boia 10 - Onda": "ADCP-Boia10_onda",
+    "Ondógrafo Píer-II": "Ondografo-PII_tab_parametros",
+    "Ondógrafo TGL": "Ondografo-TGL_tab_parametros",
+    "Ondógrafo TPD": "Ondografo-TPD_tab_parametros",
+    "Ondógrafo TPM": "Ondografo-TPM_tab_parametros",
+    "Marégrafo": "Maregrafo-TU_Maregrafo_Troll",
+    "Estação Meteorológica": "TU_Estacao_Meteorologica"
+}
+
+### JWT
+JWT_FILE = "oceanstream.jwt"
 
 def store_access_token(token):
     app_storage_dir = storagepath.get_home_dir()
@@ -139,6 +154,7 @@ def salvar_cards(dict):
 dados_cards = ler_arquivo_json(caminho_arquivo='data/cards.json')
 
 ### API
+API_PRFX = "https://oceanstream-8b3329b99e40.herokuapp.com/"
 
 def verifica_formato_data(data):
     """Verifica se a data está no formato YYYY-MM-DD."""
@@ -558,6 +574,26 @@ class Equipamento(MDScreen):
         Window.bind(on_resize=self.detect_orientation)  # Monitora mudanças na tela
         self.build_ui()
 
+    def equip_selected(self, spinner_instance, text):
+        """Chamado quando um equipamento é selecionado no Spinner"""
+        if text == "Selecione um equipamento":
+            return  # Ignora se o texto for o padrão
+            
+        if text in EQUIPAMENTOS_TABELAS:
+            self.equip = EQUIPAMENTOS_TABELAS[text]
+            self.ids.titulo.text = text  # Atualiza o título
+            
+            # Volta o texto do Spinner para o padrão
+            spinner_instance.text = "Selecione um equipamento"
+            
+            # Recarrega os dados para o equipamento selecionado
+            start_date = self.start_date_btn.text
+            end_date = self.end_date_btn.text
+            self.req_api(start_date, end_date, self.equip)
+            
+            # Atualiza a view de acordo com a orientação
+            self.update_view()
+
     def detect_orientation(self, instance, width, height):
         """Detecta a orientação da tela e atualiza a interface."""
         landscape = width > height
@@ -613,7 +649,7 @@ class Equipamento(MDScreen):
 
         # data inicial
         self.start_date_btn = MDRaisedButton(
-            text=ontem_formatado,
+            text=hoje_formatado,
             on_release=self.show_start_date_picker)
         # data final
         self.end_date_btn = MDRaisedButton(
@@ -627,40 +663,6 @@ class Equipamento(MDScreen):
         layout.add_widget(self.start_date_btn)
         layout.add_widget(self.end_date_btn)
         layout.add_widget(generate_button)
-
-    def identifica_equip(self):
-        self.equip = 'Ondografo-PII_tab_parametros' # placeholder
-        
-        if self.equip == 'Ondografo-PII_tab_parametros':
-            titulo = 'Ondógrafo Píer-II'
-        if self.equip == 'Ondografo-TPD_tab_parametros':
-            titulo = 'Ondógrafo TPD'
-        if self.equip == 'Ondografo-TGL_tab_parametros':
-            titulo = 'Ondógrafo TGL'
-        if self.equip == 'Ondografo-TPM_tab_parametros':
-            titulo = 'Ondógrafo TPM'
-
-        if self.equip == 'ADCP-Boia04_corrente':
-            titulo = 'Boia 04 - Corrente'
-        if self.equip == 'ADCP-Boia08_corrente':
-            titulo = 'Boia 08 - Corrente'
-        if self.equip == 'ADCP-Boia10_corrente':
-            titulo = 'Boia 10 - Corrente'
-        if self.equip == 'ADCP-Boia04_onda':
-            titulo = 'Boia 04 - Onda'
-        if self.equip == 'ADCP-Boia08_onda':
-            titulo = 'Boia 08 - Onda'
-        if self.equip == 'ADCP-Boia10_onda':
-            titulo = 'Boia 10 - Onda'
-
-        if self.equip == 'Maregrafo-TU_Maregrafo_Troll':
-            titulo = 'Marégrafo'
-
-        if self.equip == 'TU_Estacao_Meteorologica':
-            titulo = 'Estação Meteorológica'
-        
-        titulo_id = self.ids.titulo
-        titulo_id.text = titulo
 
     def show_start_date_picker(self, instance):
         """ Abre o seletor de data para a data de início """
@@ -680,30 +682,31 @@ class Equipamento(MDScreen):
     def set_end_date(self, instance, value, date_range):
         self.end_date_btn.text = value.strftime("%Y-%m-%d")
 
-    def req_api(self, start_date, end_date):
+    def req_api(self, start_date, end_date, equip=None):
         # esvazia lista de dados
         self.data = []
-        # identifica equipamento
-        self.identifica_equip()
-        dados_corr = api_dados(self.equip, start_date, end_date)
-
-        # ADCP - Boia
-        # corrente
-        if '_corrente' in self.equip:
-            for d in dados_corr:
+        
+        # Usa o equipamento passado como parâmetro ou o atual
+        equipamento = equip if equip else self.equip
+        
+        # Obtém os dados da API
+        dados = api_dados(equipamento, start_date, end_date)
+        
+        # Processa os dados conforme o tipo de equipamento
+        if '_corrente' in equipamento:
+            for d in dados:
                 self.data.append([d['TmStamp'], d['vel11'], d['dir11'], d['PNORS_Battery_Voltage']])
-        # onda
-        if '_onda' in self.equip:
-            for d in dados_corr:
+        elif '_onda' in equipamento:
+            for d in dados:
                 self.data.append([d['TmStamp'], d['PNORW_Hm0'], d['PNORW_Tp'], d['PNORW_DirTp']])
-        if 'Ondografo' in self.equip:
-            for d in dados_corr:
+        elif 'Ondografo' in equipamento:
+            for d in dados:
                 self.data.append([d['TmStamp'], d['hm0_alisado'], d['tp_alisado']])
-        if 'Estacao' in self.equip:
-            for d in dados_corr:
+        elif 'Estacao' in equipamento:
+            for d in dados:
                 self.data.append([d['TmStamp'], d['Velocidade_Vento'], d['Rajada_Vento'], d['Direcao_Vento'], d['Chuva']])
-        if 'Maregrafo' in self.equip:
-            for d in dados_corr:
+        elif 'Maregrafo' in equipamento:
+            for d in dados:
                 self.data.append([d['TmStamp'], d['Mare_Reduzida']])
 
         self.data.reverse()
@@ -847,10 +850,18 @@ class Equipamento(MDScreen):
         self.ids.container.add_widget(self.canvas_widget)
 
     def on_enter(self):
+        # Define um equipamento padrão se nenhum estiver selecionado
+        if not hasattr(self, 'equip') or not self.equip:
+            self.equip = 'ADCP-Boia10_corrente'
+            self.ids.titulo.text = 'Boia 10 - Corrente'
+
+        # Garante que o Spinner mostra o texto padrão
+        self.ids.equip_spinner.text = "Selecione um equipamento"
+
         start_date = self.start_date_btn.text
         end_date = self.end_date_btn.text
         self.req_api(start_date, end_date)
-        self.update_view()  # Alterna a visualização de acordo com a orientação atual
+        self.update_view()
         self.detect_orientation(Window, Window.width, Window.height)
     
     def toggle_header_visibility(self, visible):
