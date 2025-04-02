@@ -4,7 +4,6 @@
 
 <TelaLogin>:
     FloatLayout:
-        # Fundo com imagem
         canvas.before:
             Color:
                 rgba: 1, 1, 1, 1
@@ -41,11 +40,12 @@
                     color: (1, 1, 1, 1)
                     halign: 'left'
                     valign: 'middle'
-
+        
             # Card branco com sombra
+       
             MDCard:
                 size_hint: (1, None)
-                height: dp(370)
+                height: dp(440)
                 padding: [dp(30), dp(30), dp(30), dp(30)]
                 radius: [dp(20)]
                 elevation: 6
@@ -54,26 +54,63 @@
 
                 BoxLayout:
                     orientation: 'vertical'
-                    spacing: dp(15)
+                    spacing: dp(12)
 
-                    # Input Email
+                    # Título principal
+                    Label:
+                        text: "Seja bem-vindo"
+                        font_size: "24sp"
+                        bold: True
+                        halign: "left"
+                        valign: "middle"
+                        color: utils.get_color_from_hex("#04949c")
+                        size_hint_y: None
+                        height: dp(30)
+                        text_size: self.width, None
+
+                    # Subtítulo em preto
+                    Label:
+                        text: "Faça o login para continuar"
+                        font_size: "16sp"
+                        color: (0, 0, 0, 1)
+                        halign: "left"
+                        valign: "middle"
+                        size_hint_y: None
+                        height: dp(22)
+                        text_size: self.width, None
+
                     MDTextField:
                         id: email
-                        hint_text: "Email"
-                        mode: "rectangle"
+                        hint_text: "Digite seu e-mail"
+                        text: ""
+                        mode: "fill"
+                        icon_left: "email"
                         size_hint_y: None
                         height: dp(56)
 
-                    # Input Senha
-                    MDTextField:
-                        id: senha
-                        hint_text: "Senha"
-                        password: True
-                        mode: "rectangle"
+                    RelativeLayout:
                         size_hint_y: None
                         height: dp(56)
 
-                    # Botão de Login
+                        MDTextField:
+                            id: senha
+                            hint_text: "Digite sua senha"
+                            text: ""
+                            password: True
+                            mode: "fill"
+                            icon_left: "lock"
+                            size_hint_y: None
+                            height: dp(56)
+                            pos_hint: {"center_y": 0.5}
+
+                        MDIconButton:
+                            id: toggle_pass
+                            icon: "eye-off"
+                            pos_hint: {"center_y": 0.5, "right": 1}
+                            on_release:
+                                senha.password = not senha.password
+                                toggle_pass.icon = "eye" if not senha.password else "eye-off"
+
                     MDRaisedButton:
                         text: "Entrar"
                         md_bg_color: utils.get_color_from_hex("#04949c")
@@ -82,7 +119,6 @@
                         height: dp(48)
                         on_release: root.submit()
 
-                    # Mensagem de erro
                     Label:
                         id: error_message
                         text: ""
@@ -92,12 +128,12 @@
                         size_hint_y: None
                         height: dp(20)
 
-                    # Link para cadastro
-                    Button:
+                    MDFlatButton:
                         text: "Não possui cadastro? Clique aqui"
-                        background_color: 0, 0, 0, 0
-                        color: utils.get_color_from_hex("#04949c")
+                        text_color: utils.get_color_from_hex("#04949c")
                         font_size: "14sp"
-                        size_hint_y: None
-                        height: dp(40)
-                        on_press: app.root.current = 'register'  # Placeholder
+                        pos_hint: {"center_x": 0.5}
+                        on_release: app.root.current = 'register'
+
+
+
