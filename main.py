@@ -578,21 +578,25 @@ class Equipamento(MDScreen):
         """Chamado quando um equipamento é selecionado no Spinner"""
         if text == "Selecione um equipamento":
             return  # Ignora se o texto for o padrão
-            
+
         if text in EQUIPAMENTOS_TABELAS:
             self.equip = EQUIPAMENTOS_TABELAS[text]
             self.ids.titulo.text = text  # Atualiza o título
-            
+
             # Volta o texto do Spinner para o padrão
             spinner_instance.text = "Selecione um equipamento"
-            
+
             # Recarrega os dados para o equipamento selecionado
             start_date = self.start_date_btn.text
             end_date = self.end_date_btn.text
             self.req_api(start_date, end_date, self.equip)
-            
+
             # Atualiza a view de acordo com a orientação
             self.update_view()
+
+            # Se estiver em modo paisagem, plota o gráfico com os novos dados
+            if self.is_landscape:
+                self.plot_graph()
 
     def detect_orientation(self, instance, width, height):
         """Detecta a orientação da tela e atualiza a interface."""
@@ -615,7 +619,8 @@ class Equipamento(MDScreen):
 
         if self.is_landscape:
             self.toggle_header_visibility(False)  # Esconde cabeçalho e filtros
-            self.plot_graph()
+            if self.data:  # Só plota se já tiver dados
+                self.plot_graph()
         else:
             self.toggle_header_visibility(True)   # Mostra tudo
             self.rebuild_table()
@@ -776,7 +781,7 @@ class Equipamento(MDScreen):
             self.end_date_btn.text = "Selecionar Data Fim"
 
     def plot_graph(self):
-        """Gera um gráfico com Velocidade e Direção interativo."""
+        """Gera um gráfico com os dados do equipamento selecionado"""
         if not self.data:
             return
 
@@ -785,26 +790,75 @@ class Equipamento(MDScreen):
         from matplotlib.widgets import Cursor
         from datetime import datetime
 
+        # Limpa o gráfico anterior se existir
+        plt.close('all')
+        
         timestamps = [datetime.strptime(row[0], "%Y-%m-%d %H:%M:%S") for row in self.data]
-        velocidades = [float(row[1]) for row in self.data]
-        try:
+        
+        # Configurações diferentes para cada tipo de equipamento
+        if '_corrente' in self.equip:
+            # Gráfico para ADCP Corrente
+            velocidades = [float(row[1]) for row in self.data]
             direcoes = [float(row[2]) for row in self.data]
-        except IndexError:
-            direcoes = [0 for _ in self.data]  # fallback
+            
+            fig, ax = plt.subplots(figsize=(10, 4))
+            line1, = ax.plot(timestamps, velocidades, marker="o", linestyle="-", color="blue", label="Velocidade (m/s)")
+            line2, = ax.plot(timestamps, direcoes, marker="s", linestyle="--", color="red", label="Direção (°)")
+            
+            ax.set_title("Velocidade e Direção da Corrente")
+            ax.set_ylabel("Valor")
+            
+        elif '_onda' in self.equip:
+            # Gráfico para ADCP Onda
+            altura = [float(row[1]) for row in self.data]
+            periodo = [float(row[2]) for row in self.data]
+            
+            fig, ax = plt.subplots(figsize=(10, 4))
+            line1, = ax.plot(timestamps, altura, marker="o", linestyle="-", color="blue", label="Altura (m)")
+            line2, = ax.plot(timestamps, periodo, marker="s", linestyle="--", color="green", label="Período (s)")
+            
+            ax.set_title("Altura e Período de Onda")
+            ax.set_ylabel("Valor")
+            
+        elif 'Ondografo' in self.equip:
+            # Gráfico para Ondógrafo
+            altura = [float(row[1]) for row in self.data]
+            periodo = [float(row[2]) for row in self.data]
+            
+            fig, ax = plt.subplots(figsize=(10, 4))
+            line1, = ax.plot(timestamps, altura, marker="o", linestyle="-", color="blue", label="Altura (m)")
+            line2, = ax.plot(timestamps, periodo, marker="s", linestyle="--", color="green", label="Período (s)")
+            
+            ax.set_title("Altura e Período de Onda")
+            ax.set_ylabel("Valor")
+            
+        elif 'Estacao' in self.equip:
+            # Gráfico para Estação Meteorológica
+            vento = [float(row[1]) for row in self.data]
+            rajada = [float(row[2]) for row in self.data]
+            
+            fig, ax = plt.subplots(figsize=(10, 4))
+            line1, = ax.plot(timestamps, vento, marker="o", linestyle="-", color="blue", label="Vel. Vento (m/s)")
+            line2, = ax.plot(timestamps, rajada, marker="s", linestyle="--", color="red", label="Rajada (m/s)")
+            
+            ax.set_title("Velocidade do Vento e Rajadas")
+            ax.set_ylabel("Velocidade (m/s)")
+            
+        elif 'Maregrafo' in self.equip:
+            # Gráfico para Marégrafo
+            mare = [float(row[1]) for row in self.data]
+            
+            fig, ax = plt.subplots(figsize=(10, 4))
+            line1, = ax.plot(timestamps, mare, marker="o", linestyle="-", color="blue", label="Maré Reduzida (m)")
+            
+            ax.set_title("Nível do Mar")
+            ax.set_ylabel("Altura (m)")
 
-        fig, ax = plt.subplots(figsize=(10, 4))
-
-        line1, = ax.plot(timestamps, velocidades, marker="o", linestyle="-", color="blue", label="Velocidade (Kn)")
-        line2, = ax.plot(timestamps, direcoes, marker="s", linestyle="--", color="red", label="Direção (º)")
-
-        # Formatação do eixo X
+        # Configurações comuns a todos os gráficos
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
         ax.xaxis.set_major_locator(mdates.HourLocator(interval=2))
         fig.autofmt_xdate()
-
-        ax.set_title("Velocidade e Direção da Corrente")
         ax.set_xlabel("Tempo")
-        ax.set_ylabel("Valor")
         ax.legend()
         ax.grid(True)
 
@@ -827,7 +881,7 @@ class Equipamento(MDScreen):
         def hover(event):
             vis = annot.get_visible()
             if event.inaxes == ax:
-                for line in [line1, line2]:
+                for line in [line1, line2] if 'line2' in locals() else [line1]:
                     cont, ind = line.contains(event)
                     if cont:
                         update_annot(ind["ind"], line)
