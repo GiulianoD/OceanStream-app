@@ -19,6 +19,7 @@ import json
 import requests
 import os
 import jwt
+from threading import Thread
 from kivy.animation import Animation
 from kivy.core.window import Window
 from kivy_garden.matplotlib import FigureCanvasKivyAgg
@@ -147,6 +148,7 @@ def verifica_formato_data(data):
     except ValueError:
         return False
 
+# POST /dados
 def api_dados(nome_tabela, start_date, end_date):
     # Verifica o formato das datas
     if not (verifica_formato_data(start_date) and verifica_formato_data(end_date)):
@@ -187,6 +189,7 @@ def api_dados(nome_tabela, start_date, end_date):
     except Exception as error:
         print(f"Erro: {error}")
 
+# GET /ultimosDados
 def api_ultimosDados():
     # Cabeçalhos da requisição
     headers = {
@@ -212,6 +215,25 @@ def api_ultimosDados():
 
     except Exception as error:
         print(f"Erro: {error}")
+
+# POST /login
+def login(email, senha):
+    url = API_PRFX+'login'
+    headers = {'Content-Type': 'application/json'}
+    corpo = {"email": email, "senha": senha}
+    try:
+        response = requests.post(url, json=corpo, headers=headers)
+        if response.status_code == 200:
+            data = response.json()
+            access_token = data.get('accessToken')
+            store_access_token(access_token)
+            return True
+        else:
+            print(f"Falha no login: {response.status_code} - {response.text}")
+    except Exception as e:
+        print(f"Erro ao tentar fazer login: {str(e)}")
+    
+    return False
 
 ### Telas
 
@@ -417,27 +439,22 @@ class Overview(MDScreen):
             return ultimosDados['Maregrafo-TU_Maregrafo_Troll']
 
     def genereate_cards(self):
+        # Inicia uma thread para processamento pesado
+        Thread(target=self._generate_cards_threaded, daemon=True).start()
+
+    def _generate_cards_threaded(self):
+        # Esta parte é executada em uma thread separada
         app = MDApp.get_running_app()
         selected_parameters = app.selected_parameters
-        card_container = self.ids.card_container
-
-        card_container.clear_widgets()
-        self.cards.clear()
-
-        active_parameters = {key: value for key, value in selected_parameters.items() if value}
-
-        ultimosDados = api_ultimosDados()
-
+        ultimosDados = api_ultimosDados()  # Esta chamada pode ser lenta
+        
+        # Prepara os dados que serão usados na UI
+        cards_data = []
         for idx, config in enumerate(self.card_configs):
             equipment = config.get("text")
-
-            is_active = equipment in active_parameters
+            is_active = equipment in selected_parameters
             if not is_active:
-                self.card_configs[idx]['selecionado'] = []
                 continue
-
-            self.card_configs[idx]['selecionado'] = list(selected_parameters[equipment])
-            new_card = CardOverview()
 
             dados = self.identifica_e_retorna_dados(equipment=equipment, ultimosDados=ultimosDados)
             if len(dados) == 2:
@@ -448,33 +465,8 @@ class Overview(MDScreen):
                 awac = False
 
             data_hora = data_hora[:-5]
-
-            # Header com nome do equipamento e data do último dado
-            header_card = MDCard(
-                size_hint=(1, None),
-                height=40,
-                md_bg_color=(0.9, 0.9, 0.95, 1),
-                padding=[10, 5, 10, 5],
-                radius=[12, 12, 12, 12],
-                elevation=1,
-            )
-            header_label = Label(
-                text=f"{equipment} - último dado: {data_hora}",
-                color=(0, 0, 0, 1),
-                halign="left",
-                valign="middle"
-            )
-            header_card.add_widget(header_label)
-            card_container.add_widget(header_card)
-
-            # Cria o card e adiciona layout interno
-            new_card = CardOverview()
-            layout = FloatLayout(size_hint=(1, 1))
-            new_card.add_widget(layout)
-
-            # Lista com as imagens e dados para scroll horizontal
             imagens_dados = []
-
+            
             for param in selected_parameters[equipment]:
                 if param in PARAMETROS_IMAGENS:
                     coluna = self.dicionario_parametros[param]
@@ -485,22 +477,67 @@ class Overview(MDScreen):
                             dado = f"{dados[0][coluna]:.2f}"
                     else:
                         dado = f"{dados[coluna]:.2f}"
-
                     imagens_dados.append((PARAMETROS_IMAGENS[param], param, dado))
 
-                # Passa as imagens junto para que o card_maximizado possa adicioná-las
-                if config.get("maximize", True):
-                    new_card = self.card_maximizado(card=new_card, config=config, str_datetime=data_hora, idx=idx, imagens_dados=imagens_dados)
-                else:
-                    new_card = self.card_minimizado(card=new_card, config=config, str_datetime='', idx=idx)
+            cards_data.append({
+                'equipment': equipment,
+                'data_hora': data_hora,
+                'imagens_dados': imagens_dados,
+                'config': config,
+                'idx': idx
+            })
 
+        # Agendando a atualização da UI na thread principal
+        Clock.schedule_once(lambda dt: self._update_ui(cards_data))
+
+    def _update_ui(self, cards_data):
+        # Esta parte é executada na thread principal
+        card_container = self.ids.card_container
+        card_container.clear_widgets()
+        self.cards.clear()
+
+        for card_info in cards_data:
+            # Cria o header do card
+            header_card = MDCard(
+                size_hint=(1, None),
+                height=40,
+                md_bg_color=(0.9, 0.9, 0.95, 1),
+                padding=[10, 5, 10, 5],
+                radius=[12, 12, 12, 12],
+                elevation=1,
+            )
+            header_label = Label(
+                text=f"{card_info['equipment']} - último dado: {card_info['data_hora']}",
+                color=(0, 0, 0, 1),
+                halign="left",
+                valign="middle"
+            )
+            header_card.add_widget(header_label)
+            card_container.add_widget(header_card)
+
+            # Cria o card principal
+            new_card = CardOverview()
+            if card_info['config'].get("maximize", True):
+                self.card_maximizado(
+                    card=new_card, 
+                    config=card_info['config'], 
+                    str_datetime=card_info['data_hora'], 
+                    idx=card_info['idx'], 
+                    imagens_dados=card_info['imagens_dados']
+                )
+            else:
+                self.card_minimizado(
+                    card=new_card, 
+                    config=card_info['config'], 
+                    str_datetime='', 
+                    idx=card_info['idx']
+                )
 
             self.cards.append(new_card)
             card_container.add_widget(new_card)
 
-        # Adiciona espaço em branco para no final para a nav_bar não sobrepor o último card
+        # Adiciona espaço em branco para a nav_bar não sobrepor o último card
         card_container.add_widget(Widget(size_hint_y=None, height=65))
-
         salvar_cards(self.card_configs)
 
     def on_enter(self):
@@ -520,12 +557,6 @@ class Equipamento(MDScreen):
         super().__init__(**kwargs)
         Window.bind(on_resize=self.detect_orientation)  # Monitora mudanças na tela
         self.build_ui()
-
-        start_date = self.start_date_btn.text
-        end_date = self.end_date_btn.text
-        self.req_api(start_date, end_date)
-        self.update_view()  # Alterna a visualização de acordo com a orientação atual
-
 
     def detect_orientation(self, instance, width, height):
         """Detecta a orientação da tela e atualiza a interface."""
@@ -567,11 +598,10 @@ class Equipamento(MDScreen):
         self.build_ui()
         self.update_table()
 
-
     def build_ui(self):
         """ Adiciona os elementos da UI para a seleção de datas com calendário """
         layout = self.ids.box_dt
-        layout.clear_widgets()  # 🔴 ESSA LINHA É ESSENCIAL PARA EVITAR DUPLICAÇÃO
+        layout.clear_widgets()  # EVITAR DUPLICAÇÃO
 
         # Dia de hoje
         hoje = datetime.now()
@@ -597,7 +627,6 @@ class Equipamento(MDScreen):
         layout.add_widget(self.start_date_btn)
         layout.add_widget(self.end_date_btn)
         layout.add_widget(generate_button)
-
 
     def identifica_equip(self):
         self.equip = 'Ondografo-PII_tab_parametros' # placeholder
@@ -818,6 +847,10 @@ class Equipamento(MDScreen):
         self.ids.container.add_widget(self.canvas_widget)
 
     def on_enter(self):
+        start_date = self.start_date_btn.text
+        end_date = self.end_date_btn.text
+        self.req_api(start_date, end_date)
+        self.update_view()  # Alterna a visualização de acordo com a orientação atual
         self.detect_orientation(Window, Window.width, Window.height)
     
     def toggle_header_visibility(self, visible):
@@ -842,28 +875,15 @@ class TelaLogin(MDScreen):
     senha = ObjectProperty(None)
 
     def on_enter(self):
-        pass  # Splash já cuida do redirecionamento
+        pass
 
     def submit(self):
         email = self.ids.email.text
         senha = self.ids.senha.text
-        payload = {"email": email, "senha": senha}
-        url = API_PRFX+'login'
-        headers = {'Content-Type': 'application/json'}
-
-        try:
-            response = requests.post(url, json=payload, headers=headers)
-            if response.status_code == 200:
-                data = response.json()
-                access_token = data.get('accessToken')
-                store_access_token(access_token)
-                self.manager.current = 'overview'
-            else:
-                print(f"Falha no login: {response.status_code} - {response.text}")
-        except Exception as e:
-            print(f"Erro ao tentar fazer login: {str(e)}")
-        
         self.ids.senha.text = ""
+
+        if login(email=email, senha=senha):
+            self.manager.current = 'overview'
 
 class Configuracao(MDScreen):
     def __init__(self, **kwargs):
@@ -948,23 +968,6 @@ class Configuracao(MDScreen):
         else:
             print(f'Checkbox com ID {checkbox_id} não encontrada.')
 
-class TelaCarregamento(MDScreen):
-    def __init__(self, **kwargs):
-        super(TelaCarregamento, self).__init__(**kwargs)
-        self.add_widget(Label(text="OceanStream"))
-        # Clock.schedule_once(self.go_to_login, 6.0)
-
-
-    def verificar_token(self, dt):
-        try:
-            if is_token_valid(get_access_token()):
-                self.manager.current = 'overview'
-            else:
-                delete_access_token()
-                self.manager.current = 'login'
-        except FileNotFoundError:
-            print("Arquivo não encontrado.")
-
 class SplashScreen(MDScreen):
     def on_kv_post(self, base_widget):
         print(">>> SplashScreen carregada")
@@ -986,8 +989,6 @@ class SplashScreen(MDScreen):
     def verifica_token(self, *args):
         print(">>> Verificando token")
         app = MDApp.get_running_app()
-
-        # ✅ NÃO adicione a navigation_bar aqui!
 
         token = get_access_token()
         if is_token_valid(token):
@@ -1019,7 +1020,6 @@ class OceanStream(MDApp):
 
         self.gerenciador = GerenciadorTelas()
         self.gerenciador.add_widget(SplashScreen(name='splash'))
-        self.gerenciador.add_widget(TelaCarregamento(name='load'))
         self.gerenciador.add_widget(Overview(name='overview'))
         self.gerenciador.add_widget(Alertas(name='alertas'))
         self.gerenciador.add_widget(TelaLogin(name='login'))
