@@ -52,6 +52,8 @@ PARAMETROS_IMAGENS = {
     "Bateria":                 "res/bateria.png",                                                     # Corrente
     "Vel. Corr.":              "res/corrente- oceanstream.png",                                       # Corrente
     "Dir. Corr.":              "res/corrente-seta-direita.png",                                       # Corrente
+    "Pitch":                   "res/Pitch-Roll.png",                                                  # Corrente
+    "Roll":                    "res/Pitch-Roll.png",                                                  # Corrente
     "Altura Onda":             "res/Onda com linha- oceanstream.png",                                 # Onda
     "Período Onda":            "res/Onda - oceanstream.png",                                          # Onda
     "Altura":                  "res/Onda com linha- oceanstream.png",                                 # Ondógrafo
@@ -339,6 +341,8 @@ class Overview(MDScreen):
         self.card_configs = dados_cards['cartoes']
 
         self.dicionario_parametros = { # conforme as colunas no banco de dados
+                       'Pitch' : 'PNORS_Pitch',
+                        'Roll' : 'PNORS_Roll',
                   'Vel. Corr.' : 'vel11',
                   'Dir. Corr.' : 'dir11',
                      'Bateria' : 'PNORS_Battery_Voltage',
@@ -459,10 +463,9 @@ class Overview(MDScreen):
         Thread(target=self._generate_cards_threaded, daemon=True).start()
 
     def _generate_cards_threaded(self):
-        # Esta parte é executada em uma thread separada
         app = MDApp.get_running_app()
         selected_parameters = app.selected_parameters
-        ultimosDados = api_ultimosDados()  # Esta chamada pode ser lenta
+        ultimosDados = api_ultimosDados()
         
         # Prepara os dados que serão usados na UI
         cards_data = []
@@ -700,7 +703,7 @@ class Equipamento(MDScreen):
         # Processa os dados conforme o tipo de equipamento
         if '_corrente' in equipamento:
             for d in dados:
-                self.data.append([d['TmStamp'], d['vel11'], d['dir11'], d['PNORS_Battery_Voltage']])
+                self.data.append([d['TmStamp'], d['PNORS_Pitch'], d['PNORS_Roll'], d['vel11'], d['dir11'], d['PNORS_Battery_Voltage']])
         elif '_onda' in equipamento:
             for d in dados:
                 self.data.append([d['TmStamp'], d['PNORW_Hm0'], d['PNORW_Tp'], d['PNORW_DirTp']])
@@ -727,9 +730,11 @@ class Equipamento(MDScreen):
 
         # Adiciona o cabeçalho
         if '_corrente' in self.equip: # ADCP Corrente
-            table.cols = 4
-            table_h.cols = 4
+            table.cols = 6
+            table_h.cols = 6
             table_h.add_widget(Label(text="TimeStamp", bold=True, color=self.cor_label))
+            table_h.add_widget(Label(text="Pitch", bold=True, color=self.cor_label))
+            table_h.add_widget(Label(text="Roll", bold=True, color=self.cor_label))
             table_h.add_widget(Label(text="Velocidade", bold=True, color=self.cor_label))
             table_h.add_widget(Label(text="Direção (°)", bold=True, color=self.cor_label))
             table_h.add_widget(Label(text="Bateria (V)", bold=True, color=self.cor_label))
