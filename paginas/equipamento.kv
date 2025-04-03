@@ -19,36 +19,67 @@
             FloatLayout:
                 size_hint: (1, None)
                 height: dp(120)
-                
+
                 MDIconButton:
                     icon: "arrow-left"
                     size_hint: (None, None)
                     size: dp(36), dp(36)
                     pos_hint: {"left": 1, "top": 1}
                     theme_text_color: "Custom"
-                    text_color: (1, 1, 1, 1)
+                    text_color: 1, 1, 1, 1
                     on_release: app.gerenciador.current = 'overview'
 
-                Label:
-                    id: titulo
-                    text: 'Equipamento'
-                    font_size: 30
-                    bold: True
-                    color: utils.get_color_from_hex('#FFFFFF')
-                    size_hint: (1, None)
-                    pos_hint: {"center_x": 0.5, "top": 1}
-                    halign: "center"
-                    valign: "middle"
+                
+                # Layout do título e seta (dentro do botão invisível)
+                BoxLayout:
+                    id: titulo_container
+                    orientation: "horizontal"
+                    spacing: dp(6)
+                    size_hint: None, None
                     height: dp(40)
+                    width: dp(300)
+                    pos_hint: {"center_x": 0.5, "top": 0.8}
 
-                Spinner:
-                    id: equip_spinner
-                    size_hint: (0.8, None)
-                    height: dp(40)
-                    pos_hint: {'center_x': 0.5, 'top': 0.7}
-                    text: "Selecione um equipamento"
-                    values: ["Boia 04 - Corrente","Boia 08 - Corrente","Boia 10 - Corrente","Boia 04 - Onda","Boia 08 - Onda","Boia 10 - Onda","Ondógrafo Píer-II","Ondógrafo TGL","Ondógrafo TPD","Ondógrafo TPM","Marégrafo","Estação Meteorológica"]
-                    on_text: root.equip_selected(self, self.text)
+                    MDLabel:
+                        id: titulo
+                        text: "Selecione um equipamento"  # ← isso será substituído via Python
+                        font_size: "22sp"
+                        bold: True
+                        color: 1, 1, 1, 1
+                        halign: "center"
+                        valign: "middle"
+                        text_size: self.size
+                        size_hint_x: 1
+                        shorten: True
+
+                    MDIcon:
+                        id: titulo_dropdown_icon
+                        icon: "chevron-down"
+                        theme_text_color: "Custom"
+                        text_color: 1, 1, 1, 1
+                        font_size: "22sp"
+                        size_hint: None, None
+                        size: dp(32), dp(32)
+                        pos_hint: {"center_y": 0.5}
+                        canvas.before:
+                            PushMatrix
+                            Rotate:
+                                angle: self.rotation
+                                origin: self.center
+                        canvas.after:
+                            PopMatrix
+                        rotation: 0
+
+
+
+
+                # Botão invisível por cima da área de título
+                Button:
+                    size_hint: None, None
+                    size: dp(300), dp(40)
+                    pos_hint: {"center_x": 0.5, "top": 0.8}
+                    background_color: 0, 0, 0, 0
+                    on_release: root.open_equip_menu()
 
             # Card branco com tabela
             MDCard:
@@ -62,14 +93,12 @@
                 BoxLayout:
                     orientation: 'vertical'
 
-                    # Seleciona datetime
                     BoxLayout:
                         id: box_dt
                         size_hint_y: None
                         height: dp(50)
                         spacing: dp(10)
 
-                    # Define header
                     GridLayout:
                         id: header_table
                         size_hint_y: None
@@ -77,12 +106,11 @@
                         spacing: dp(5)
                         canvas.before:
                             Color:
-                                rgba: 0.8, 0.8, 0.8, 1  # Cinza mais escuro para diferenciar
+                                rgba: 0.8, 0.8, 0.8, 1
                             Rectangle:
                                 pos: self.pos
                                 size: self.size
 
-                    # Linhas de dados
                     ScrollView:
                         GridLayout:
                             id: data_table
@@ -90,10 +118,9 @@
                             height: self.minimum_height
                             row_default_height: dp(40)
                             spacing: dp(5)
-
                             canvas.before:
                                 Color:
-                                    rgba: 0.9, 0.9, 0.9, 1  # Cor de fundo cinza claro
+                                    rgba: 0.9, 0.9, 0.9, 1
                                 Rectangle:
                                     pos: self.pos
                                     size: self.size

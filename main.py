@@ -27,6 +27,8 @@ import matplotlib.pyplot as plt
 from kivy.metrics import dp
 from kivy.uix.image import Image
 from kivy.uix.scrollview import ScrollView  # se ainda não tiver
+from kivymd.uix.menu import MDDropdownMenu
+
 
 class StyledCheckbox(MDCheckbox):
     def __init__(self, **kwargs):
@@ -577,27 +579,19 @@ class Equipamento(MDScreen):
         Window.bind(on_resize=self.detect_orientation)  # Monitora mudanças na tela
         self.build_ui()
 
-    def equip_selected(self, spinner_instance, text):
-        """Chamado quando um equipamento é selecionado no Spinner"""
+    def equip_selected(self, text):
         if text == "Selecione um equipamento":
-            return  # Ignora se o texto for o padrão
+            return
 
         if text in EQUIPAMENTOS_TABELAS:
             self.equip = EQUIPAMENTOS_TABELAS[text]
-            self.ids.titulo.text = text  # Atualiza o título
+            self.ids.titulo.text = text
 
-            # Volta o texto do Spinner para o padrão
-            spinner_instance.text = "Selecione um equipamento"
-
-            # Recarrega os dados para o equipamento selecionado
             start_date = self.start_date_btn.text
             end_date = self.end_date_btn.text
             self.req_api(start_date, end_date, self.equip)
-
-            # Atualiza a view de acordo com a orientação
             self.update_view()
 
-            # Se estiver em modo paisagem, plota o gráfico com os novos dados
             if self.is_landscape:
                 self.plot_graph()
 
@@ -797,9 +791,9 @@ class Equipamento(MDScreen):
 
         # Limpa o gráfico anterior se existir
         plt.close('all')
-        
+
         timestamps = [datetime.strptime(row[0], "%Y-%m-%d %H:%M:%S") for row in self.data]
-        
+
         # Configurações diferentes para cada tipo de equipamento
         if '_corrente' in self.equip:
             # Gráfico para ADCP Corrente
@@ -907,22 +901,7 @@ class Equipamento(MDScreen):
         self.canvas_widget.pos_hint = {"center_x": 0.5, "center_y": 0.5}
 
         self.ids.container.add_widget(self.canvas_widget)
-
-    def on_enter(self):
-        # Define um equipamento padrão se nenhum estiver selecionado
-        if not hasattr(self, 'equip') or not self.equip:
-            self.equip = 'ADCP-Boia10_corrente'
-            self.ids.titulo.text = 'Boia 10 - Corrente'
-
-        # Garante que o Spinner mostra o texto padrão
-        self.ids.equip_spinner.text = "Selecione um equipamento"
-
-        start_date = self.start_date_btn.text
-        end_date = self.end_date_btn.text
-        self.req_api(start_date, end_date)
-        self.update_view()
-        self.detect_orientation(Window, Window.width, Window.height)
-    
+   
     def toggle_header_visibility(self, visible):
         header = self.ids.get("titulo", None)
         if header:
@@ -939,6 +918,49 @@ class Equipamento(MDScreen):
         box_dt.disabled = not visible
         header_table.opacity = 1 if visible else 0
         header_table.disabled = not visible
+
+    def build_menu(self):
+        equipamentos = [
+            "Boia 04 - Corrente", "Boia 08 - Corrente", "Boia 10 - Corrente",
+            "Boia 04 - Onda", "Boia 08 - Onda", "Boia 10 - Onda",
+            "Ondógrafo Píer-II", "Ondógrafo TGL", "Ondógrafo TPD",
+            "Ondógrafo TPM", "Marégrafo", "Estação Meteorológica"
+        ]
+        self.menu_items = [
+            {
+                "text": equipamento,
+                "height": dp(48),
+                "text_color": (0, 0, 0, 1),
+                "on_release": lambda x=equipamento: self.set_equipamento(x)
+            } for equipamento in equipamentos
+        ]
+
+        self.menu = MDDropdownMenu(
+            caller=self.ids.titulo_container,
+            items=self.menu_items,
+            width_mult=4,
+            max_height=dp(240),
+        )
+
+    def open_equip_menu(self):
+        if self.menu:
+            self.menu.open()
+            self.animate_arrow(up=True)
+
+    def set_equipamento(self, text):
+        self.ids.titulo.text = text  # ← Isso troca o texto visualmente
+        self.animate_arrow(up=False)  # ← Isso gira a seta de volta para baixo
+        self.menu.dismiss()
+        self.equip_selected(text)
+
+    def animate_arrow(self, up):
+        icon = self.ids.titulo_dropdown_icon
+        anim = Animation(rotation=180 if up else 0, duration=0.2)
+        anim.start(icon)    
+
+    def on_kv_post(self, base_widget):
+        super().on_kv_post(base_widget)
+        self.build_menu()
 
 class TelaLogin(MDScreen):
     email = ObjectProperty(None)
