@@ -963,6 +963,8 @@ class Configuracao(MDScreen):
         self.first=True
 
         self.dicionario_parametros = { # conforme os IDs das checkboxes em 'configuracao.kv'
+                       'Pitch' : 'pitch',
+                        'Roll' : 'roll',
                   'Vel. Corr.' : 'vel',
                   'Dir. Corr.' : 'dir',
                  'Altura Onda' : 'altura',
