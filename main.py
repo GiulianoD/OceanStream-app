@@ -81,7 +81,17 @@ EQUIPAMENTOS_TABELAS = {
     "Marégrafo": "Maregrafo-TU_Maregrafo_Troll",
     "Estação Meteorológica": "TU_Estacao_Meteorologica"
 }
-
+# Cabecalho da tabela na tela Equipamento
+CABECALHO_TABELA = {
+    '_corrente': [
+        ['TmStamp', 'TimeStamp']
+        # ,['PNORS_Pitch', 'Pitch']
+        # ,['PNORS_Roll', 'Roll']
+        ,['vel11', 'Velocidade']
+        ,['dir11', 'Direção (°)']
+        ,['PNORS_Battery_Voltage', 'Bateria (V)']
+    ]
+}
 ### JWT
 JWT_FILE = "oceanstream.jwt"
 
@@ -670,7 +680,8 @@ class Equipamento(MDScreen):
         # Processa os dados conforme o tipo de equipamento
         if '_corrente' in equipamento:
             for d in dados:
-                self.data.append([d['TmStamp'], d['PNORS_Pitch'], d['PNORS_Roll'], d['vel11'], d['dir11'], d['PNORS_Battery_Voltage']])
+                colunas_corr = CABECALHO_TABELA['_corrente']
+                self.data.append([ d[c[0]] for c in colunas_corr ])
         elif '_onda' in equipamento:
             for d in dados:
                 self.data.append([d['TmStamp'], d['PNORW_Hm0'], d['PNORW_Tp'], d['PNORW_DirTp']])
@@ -697,14 +708,17 @@ class Equipamento(MDScreen):
 
         # Adiciona o cabeçalho
         if '_corrente' in self.equip: # ADCP Corrente
-            table.cols = 6
-            table_h.cols = 6
-            table_h.add_widget(Label(text="TimeStamp", bold=True, color=self.cor_label))
-            table_h.add_widget(Label(text="Pitch", bold=True, color=self.cor_label))
-            table_h.add_widget(Label(text="Roll", bold=True, color=self.cor_label))
-            table_h.add_widget(Label(text="Velocidade", bold=True, color=self.cor_label))
-            table_h.add_widget(Label(text="Direção (°)", bold=True, color=self.cor_label))
-            table_h.add_widget(Label(text="Bateria (V)", bold=True, color=self.cor_label))
+            colunas_corr = CABECALHO_TABELA['_corrente']
+            table.cols = len(colunas_corr)
+            table_h.cols = len(colunas_corr)
+            for coluna in colunas_corr:
+                table_h.add_widget(Label(text=coluna[1], bold=True, color=self.cor_label))
+            # table_h.add_widget(Label(text="TimeStamp", bold=True, color=self.cor_label))
+            # table_h.add_widget(Label(text="Pitch", bold=True, color=self.cor_label))
+            # table_h.add_widget(Label(text="Roll", bold=True, color=self.cor_label))
+            # table_h.add_widget(Label(text="Velocidade", bold=True, color=self.cor_label))
+            # table_h.add_widget(Label(text="Direção (°)", bold=True, color=self.cor_label))
+            # table_h.add_widget(Label(text="Bateria (V)", bold=True, color=self.cor_label))
         if '_onda' in self.equip:
             table.cols = 4
             table_h.cols = 4
