@@ -362,33 +362,6 @@ class Overview(MDScreen):
                        'Chuva' : 'Chuva'
         }
 
-    def toggle_card(self, card_index):
-        indice_ref = int(card_index)
-        indice_geral = 0
-        indice_active = indice_ref
-
-        while indice_geral < indice_ref:
-            if not list(self.card_configs[indice_geral]['selecionado']):
-                indice_active -= 1
-            indice_geral += 1
-
-        card_config = self.card_configs[card_index]
-        card = self.cards[indice_active]
-
-        card_config["maximize"] = not card_config["maximize"]
-
-        if card_config["maximize"]:
-            # Maximiza o card: exibe a imagem e o conteúdo original
-            card = self.card_maximizado(card=card, config=card_config, idx=card_index)
-        else:
-            # Minimiza o card: oculta a imagem e exibe o conteúdo reduzido
-            card = self.card_minimizado(card=card, config=card_config, idx=card_index)
-
-        # Atualiza a imagem (oculta ou exibe)
-        card.update_rect()
-        self.reorganize_cards()
-        salvar_cards(self.card_configs)
-
     def card_maximizado(self, card, config, str_datetime, idx, imagens_dados=None):
         card.clear_widgets()
 
@@ -461,7 +434,6 @@ class Overview(MDScreen):
             return ultimosDados['Maregrafo-TU_Maregrafo_Troll']
 
     def genereate_cards(self):
-        # Inicia uma thread para processamento pesado
         Thread(target=self._generate_cards_threaded, daemon=True).start()
 
     def _generate_cards_threaded(self):
@@ -559,6 +531,7 @@ class Overview(MDScreen):
 
         # Adiciona espaço em branco para a nav_bar não sobrepor o último card
         card_container.add_widget(Widget(size_hint_y=None, height=65))
+        print(f'card_config: {self.card_configs}')
         salvar_cards(self.card_configs)
 
     def on_enter(self):
@@ -1036,16 +1009,21 @@ class Configuracao(MDScreen):
 
     def seleciona_chkbx(self):
         app = MDApp.get_running_app()
+        overview_screen = app.gerenciador.get_screen('overview')
+        
         # Percorre cada um dos equipamentos selecionados
-        for equip in app.selected_parameters:
+        for card_config in overview_screen.card_configs:
+            if not card_config['selecionado']:
+                continue
+                
+            equip = card_config['text']
             id_equip = self.identifica_equipamento(equip)
 
             # Percorre cada um dos parametros do equipamento atual
-            for parametro in app.selected_parameters[equip]:
+            for parametro in card_config['selecionado']:
                 id_parametro = self.dicionario_parametros[parametro]
                 chkbx_id = f'{id_equip}{id_parametro}'
                 self.alterar_estado_checkbox(chkbx_id, 'down')
-        return
 
     def alterar_estado_checkbox(self, checkbox_id, novo_estado):
         """
@@ -1101,13 +1079,13 @@ class OceanStream(MDApp):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.selected_parameters = {}
-
-        for equip in dados_cards['cartoes']:
-            if list(equip['selecionado']):
-                self.selected_parameters[equip['text']] = []
-                for param in list(equip['selecionado']):
-                    if param not in self.selected_parameters[equip['text']]:  # Evitar duplicatas
-                        self.selected_parameters[equip['text']].append(param)
+        
+        # Carrega as configurações do JSON
+        dados_cards = ler_arquivo_json(caminho_arquivo='data/cards.json')
+        if dados_cards:
+            for equip in dados_cards['cartoes']:
+                if equip['selecionado']:  # Verifica se há parâmetros selecionados
+                    self.selected_parameters[equip['text']] = equip['selecionado'].copy()
 
     def build(self):
         self.root_layout = FloatLayout()  # FloatLayout para permitir sobreposição
@@ -1133,20 +1111,35 @@ class OceanStream(MDApp):
         return self.root_layout
 
     def toggle_parameter(self, equipment, parameter, state):
+        # Atualiza selected_parameters
         if equipment not in self.selected_parameters:
-            # self.selected_parameters[equipment] = set()
             self.selected_parameters[equipment] = []
-
+        
         if state == 'down':
             if parameter not in self.selected_parameters[equipment]:
                 self.selected_parameters[equipment].append(parameter)
         else:
             if parameter in self.selected_parameters[equipment]:
                 self.selected_parameters[equipment].remove(parameter)
-
-        app = MDApp.get_running_app()
-        if app.gerenciador.current == "overview":
-            app.gerenciador.get_screen("overview").genereate_cards()
+        
+        # Atualiza card_configs na tela Overview
+        overview_screen = self.gerenciador.get_screen('overview')
+        for card in overview_screen.card_configs:
+            if card['text'] == equipment:
+                if state == 'down':
+                    if parameter not in card['selecionado']:
+                        card['selecionado'].append(parameter)
+                else:
+                    if parameter in card['selecionado']:
+                        card['selecionado'].remove(parameter)
+                break
+        
+        # Salva as alterações
+        salvar_cards(overview_screen.card_configs)
+        
+        # Atualiza a tela Overview se estiver visível
+        if self.gerenciador.current == "overview":
+            self.gerenciador.get_screen("overview").genereate_cards()
 
     def on_screen_change(self, instance, screen_name):
         if screen_name == 'overview':

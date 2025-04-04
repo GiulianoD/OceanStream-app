@@ -1,16 +1,18 @@
 {
     "nome": "Overview - Cards",
-    "atualizado_em": "2025-04-02 15:52:50.293491",
+    "atualizado_em": "2025-04-04 15:05:34.200586",
     "cartoes": [
         {
             "maximize": true,
             "text": "Boia 10",
             "selecionado": [
+                "Bateria",
+                "Pitch",
+                "Roll",
+                "Vel. Corr.",
                 "Dir. Corr.",
                 "Altura Onda",
-                "Período Onda",
-                "Bateria",
-                "Vel. Corr."
+                "Período Onda"
             ]
         },
         {
