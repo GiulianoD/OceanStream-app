@@ -111,6 +111,16 @@
                                 senha.password = not senha.password
                                 toggle_pass.icon = "eye" if not senha.password else "eye-off"
 
+                    Label:
+                        id: error_message
+                        text: ""
+                        color: (1, 0, 0, 1)  # Vermelho
+                        font_size: "14sp"
+                        halign: "center"
+                        size_hint_y: None
+                        height: dp(20)
+                        opacity: 0  # Inicialmente invisível
+
                     MDRaisedButton:
                         text: "Entrar"
                         md_bg_color: utils.get_color_from_hex("#04949c")

@@ -1,3 +1,7 @@
+import matplotlib
+matplotlib.use("Agg")  # Backend não interativo (sem UI)
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context 
 from kivymd.app import MDApp
 from kivymd.uix.button import MDRectangleFlatButton, MDRaisedButton
 from kivymd.uix.card import MDCard
@@ -28,6 +32,8 @@ from kivy.metrics import dp
 from kivy.uix.image import Image
 from kivy.uix.scrollview import ScrollView  # se ainda não tiver
 from kivymd.uix.menu import MDDropdownMenu
+from kivy.utils import platform
+from kivy.logger import Logger
 
 
 class StyledCheckbox(MDCheckbox):
@@ -95,23 +101,37 @@ CABECALHO_TABELA = {
 ### JWT
 JWT_FILE = "oceanstream.jwt"
 
+def get_storage_path():
+    if platform == 'android':
+        from android.storage import app_storage_path
+        return app_storage_path()
+    else:
+        return storagepath.get_home_dir()
+
 def store_access_token(token):
-    app_storage_dir = storagepath.get_home_dir()
+    app_storage_dir = get_storage_path()
     token_file_path = os.path.join(app_storage_dir, JWT_FILE)
-    with open(token_file_path, 'w') as token_file:
-        token_file.write(token)
-    print(f"Token salvo em {token_file_path}")
+    try:
+        with open(token_file_path, 'w') as token_file:
+            token_file.write(token)
+        Logger.info(f"Token salvo em {token_file_path}")
+    except Exception as e:
+        Logger.error(f"Erro ao salvar token: {str(e)}")
 
 def get_access_token():
-    app_storage_dir = storagepath.get_home_dir()
+    app_storage_dir = get_storage_path()
     token_file_path = os.path.join(app_storage_dir, JWT_FILE)
     if os.path.exists(token_file_path):
-        with open(token_file_path, 'r') as token_file:
-            token = token_file.read()
-            print(f"JWT recuperado.")
-            return token
+        try:
+            with open(token_file_path, 'r') as token_file:
+                token = token_file.read()
+                Logger.info("JWT recuperado.")
+                return token
+        except Exception as e:
+            Logger.error(f"Erro ao ler token: {str(e)}")
+            return ""
     else:
-        print("Nenhum token encontrado.")
+        Logger.info("Nenhum token encontrado.")
         return ""
 
 def delete_access_token():
@@ -257,13 +277,15 @@ def login(email, senha):
             data = response.json()
             access_token = data.get('accessToken')
             store_access_token(access_token)
-            return True
+            return [True, '']
         else:
-            print(f"Falha no login: {response.status_code} - {response.text}")
+            msg = f"Falha no login: {response.status_code} - {response.text}"
+            print(msg)
     except Exception as e:
-        print(f"Erro ao tentar fazer login: {str(e)}")
+        msg = f"Erro ao tentar fazer login: {str(e)}"
+        print(msg)
     
-    return False
+    return [False, msg]
 
 ### Telas
 
@@ -580,10 +602,23 @@ class Equipamento(MDScreen):
 
     def detect_orientation(self, instance, width, height):
         """Detecta a orientação da tela e atualiza a interface."""
-        landscape = width > height
+        if platform == 'android':
+            from jnius import autoclass
+            Context = autoclass('android.content.Context')
+            WindowManager = autoclass('android.view.WindowManager')
+            context = autoclass('org.kivy.android.PythonActivity').mActivity
+            window_manager = context.getSystemService(Context.WINDOW_SERVICE)
+            display = window_manager.getDefaultDisplay()
+            rotation = display.getRotation()
+
+            # 0 ou 2 é portrait, 1 ou 3 é landscape
+            landscape = rotation % 2 == 1
+        else:
+            landscape = width > height
+
         if landscape != self.is_landscape:
             self.is_landscape = landscape
-            self.update_view()  # Atualiza a interface para alternar entre tabela e gráfico
+            self.update_view()
 
     def update_view(self):
         """Alterna entre tabela e gráfico dependendo da orientação da tela."""
@@ -959,10 +994,33 @@ class TelaLogin(MDScreen):
     def submit(self):
         email = self.ids.email.text
         senha = self.ids.senha.text
-        self.ids.senha.text = ""
+        
+        # Limpa a mensagem de erro anterior
+        self.ids.error_message.text = ""
+        self.ids.error_message.opacity = 0
+        
+        try:
+            resposta = login(email=email, senha=senha)
+            if resposta[0]:
+                self.manager.current = 'overview'
+            else:
+                self.show_error(resposta[1])
+        except requests.exceptions.Timeout:
+            self.show_error("Timeout: servidor não respondeu")
+        except requests.exceptions.ConnectionError:
+            self.show_error("Sem conexão com o servidor")
+        except Exception as e:
+            self.show_error(f"Erro: {str(e)}")
+        finally:
+            self.ids.senha.text = ""
 
-        if login(email=email, senha=senha):
-            self.manager.current = 'overview'
+    def show_error(self, message):
+        """Exibe a mensagem de erro com animação"""
+        error_label = self.ids.error_message
+        error_label.text = message
+        self.ids.error_message
+        anim = Animation(opacity=1, duration=0.3)
+        anim.start(error_label)
 
 class Configuracao(MDScreen):
     def __init__(self, **kwargs):
@@ -1098,13 +1156,29 @@ class OceanStream(MDApp):
         dados_cards = ler_arquivo_json(caminho_arquivo='data/cards.json')
         if dados_cards:
             for equip in dados_cards['cartoes']:
-                if equip['selecionado']:  # Verifica se há parâmetros selecionados
+                if equip['selecionado']:
                     self.selected_parameters[equip['text']] = equip['selecionado'].copy()
 
     def build(self):
-        self.root_layout = FloatLayout()  # FloatLayout para permitir sobreposição
+        # Solicitar permissões no Android
+        if platform == 'android':
+            from android.permissions import request_permissions, Permission
+            request_permissions([
+                Permission.INTERNET,
+                Permission.READ_EXTERNAL_STORAGE,
+                Permission.WRITE_EXTERNAL_STORAGE
+            ])
+        
+        # Configurações específicas para Android
+        if platform == 'android':
+            from kivy.core.window import Window
+            Window.softinput_mode = 'below_target'
+            Window.size = (360, 640)  # Tamanho inicial para mobile
 
+        self.root_layout = FloatLayout()
         self.gerenciador = GerenciadorTelas()
+        
+        # Adiciona todas as telas
         self.gerenciador.add_widget(SplashScreen(name='splash'))
         self.gerenciador.add_widget(Overview(name='overview'))
         self.gerenciador.add_widget(Alertas(name='alertas'))
@@ -1113,15 +1187,12 @@ class OceanStream(MDApp):
         self.gerenciador.add_widget(Equipamento(name='equipamento'))
 
         self.gerenciador.bind(current=self.on_screen_change)
-
-        # Adiciona o gerenciador ocupando toda a tela
         self.gerenciador.size_hint = (1, 1)
         self.root_layout.add_widget(self.gerenciador)
-
-        # Inicialmente, navigation_bar é None
+        
         self.navigation_bar = None
-
         self.gerenciador.current = 'splash'
+        
         return self.root_layout
 
     def toggle_parameter(self, equipment, parameter, state):
