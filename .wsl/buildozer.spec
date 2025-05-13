@@ -18,12 +18,13 @@ source.main = main.py
 
 # Inclui todo o conteúdo da pasta res (se você usa imagens lá)
 presplash.filename = res/logo.png
+android.presplash_color = #55E6C9
 
 # Versão do app
 version = 0.1
 
 # Ícone do app (opcional)
-# icon.filename = %(source.dir)s/icon.png
+icon.filename = res/logo.png
 
 # Linguagem requerida
 requirements = python3,kivy,kivymd,plyer,requests,pyjwt,kivy_garden.matplotlib,matplotlib,certifi,urllib3,chardet,idna,jnius
@@ -39,13 +40,26 @@ android.arch = arm64-v8a,armeabi-v7a
 
 # Configurações específicas
 android.minapi = 21
-android.sdk = 33
+android.sdk = 34
 android.ndk = 25b
-android.api = 33
-android.build_tools_version = 33.0.2
+android.api = 34
+android.build_tools_version = 34.0.0
+android.target_api = 34
 
 # Se quiser melhorar o tamanho do APK:
 # android.enable_optimizations = True
 
 # Indica ao buildozer para incluir recursos externos (opcional)
 # include_exts = kv,png,jpg,atlas,json
+
+# (android) The name of the keystore file to use for signing the app
+android.release_keystore = evlmetocean.keystore
+
+# (android) The alias to use when signing the app
+android.release_alias = evlmetocean
+
+# (android) The password for the keystore
+android.release_keystore_passwd = JRuano
+
+# (android) The password for the alias
+android.release_alias_passwd = JRuano
