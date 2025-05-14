@@ -13,6 +13,7 @@ from kivymd.app import MDApp
 from kivy.utils import platform 
 from kivymd.uix.button import MDRectangleFlatButton, MDRaisedButton
 from kivymd.uix.card import MDCard
+from kivymd.uix.label import MDLabel
 from kivymd.uix.pickers import MDDatePicker
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.screenmanager import MDScreenManager
@@ -42,6 +43,7 @@ from kivy.uix.scrollview import ScrollView  # se ainda não tiver
 from kivymd.uix.menu import MDDropdownMenu
 from kivy.utils import platform
 from kivy.logger import Logger
+
 
 
 class StyledCheckbox(MDCheckbox):
@@ -474,7 +476,15 @@ class Overview(MDScreen):
             return ultimosDados['Maregrafo-TU_Maregrafo_Troll']
 
     def genereate_cards(self):
+        # Mostra feedback de carregamento
+        self.ids.card_container.clear_widgets()
+        self.ids.card_container.add_widget(
+            MDLabel(text="Carregando dados...", halign="center", theme_text_color="Hint")
+        )
+        
+        # Inicia o carregamento dos cards em thread separada
         Thread(target=self._generate_cards_threaded, daemon=True).start()
+
 
     def _generate_cards_threaded(self):
         app = MDApp.get_running_app()
@@ -524,12 +534,26 @@ class Overview(MDScreen):
         Clock.schedule_once(lambda dt: self._update_ui(cards_data))
 
     def _update_ui(self, cards_data):
-        # Esta parte é executada na thread principal
-        card_container = self.ids.card_container
-        card_container.clear_widgets()
-        self.cards.clear()
+        self.cards_data = cards_data      # Armazena os dados para uso em partes
+        self.cards_index = 0              # Índice de controle de qual card está sendo adicionado
+        self.cards.clear()                # Limpa lista de cards
+        self.ids.card_container.clear_widgets()
 
-        for card_info in cards_data:
+        # Mostra mensagem de carregamento inicial
+        self.ids.card_container.add_widget(
+            MDLabel(text="Carregando dados...", halign="center", theme_text_color="Hint")
+        )
+
+        # Começa a inserção progressiva
+        Clock.schedule_once(self._add_next_card)
+
+    def _add_next_card(self, dt=None):
+        if self.cards_index == 0:
+            self.ids.card_container.clear_widgets()  # Limpa o "Carregando dados..."
+
+        if self.cards_index < len(self.cards_data):
+            card_info = self.cards_data[self.cards_index]
+
             # Cria o header do card
             header_card = MDCard(
                 size_hint=(1, None),
@@ -546,36 +570,41 @@ class Overview(MDScreen):
                 valign="middle"
             )
             header_card.add_widget(header_label)
-            card_container.add_widget(header_card)
+            self.ids.card_container.add_widget(header_card)
 
             # Cria o card principal
             new_card = CardOverview()
             if card_info['config'].get("maximize", True):
                 self.card_maximizado(
-                    card=new_card, 
-                    config=card_info['config'], 
-                    str_datetime=card_info['data_hora'], 
-                    idx=card_info['idx'], 
+                    card=new_card,
+                    config=card_info['config'],
+                    str_datetime=card_info['data_hora'],
+                    idx=card_info['idx'],
                     imagens_dados=card_info['imagens_dados']
                 )
             else:
                 self.card_minimizado(
-                    card=new_card, 
-                    config=card_info['config'], 
-                    str_datetime='', 
+                    card=new_card,
+                    config=card_info['config'],
+                    str_datetime='',
                     idx=card_info['idx']
                 )
 
             self.cards.append(new_card)
-            card_container.add_widget(new_card)
+            self.ids.card_container.add_widget(new_card)
 
-        # Adiciona espaço em branco para a nav_bar não sobrepor o último card
-        card_container.add_widget(Widget(size_hint_y=None, height=65))
-        print(f'card_config: {self.card_configs}')
-        salvar_cards(self.card_configs)
+            self.cards_index += 1
+            Clock.schedule_once(self._add_next_card, 0.02)  # 20ms entre cada card
+        else:
+            # Adiciona espaçamento final
+            self.ids.card_container.add_widget(Widget(size_hint_y=None, height=65))
+            salvar_cards(self.card_configs)
+            print(f'card_config: {self.card_configs}')
+
+
 
     def on_enter(self):
-        self.genereate_cards()
+        self.genereate_cards()  
 
 class Alertas(MDScreen):
     pass

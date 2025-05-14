@@ -1,6 +1,6 @@
 {
     "nome": "Overview - Cards",
-    "atualizado_em": "2025-05-14 14:21:12.368955",
+    "atualizado_em": "2025-05-14 18:15:37.133041",
     "cartoes": [
         {
             "maximize": true,
@@ -34,7 +34,9 @@
                 "Período Onda",
                 "Vel. Corr.",
                 "Altura Onda",
-                "Bateria"
+                "Bateria",
+                "Pitch",
+                "Roll"
             ]
         },
         {
