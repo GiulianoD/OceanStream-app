@@ -1,10 +1,10 @@
 import os
-os.environ["KIVY_NO_CONSOLELOG"] = "1"
-os.environ["KIVY_NO_FILELOG"] = "1"
 os.environ["KIVY_NO_ARGS"] = "1"
+os.environ["KIVY_NO_FILELOG"] = "1"
+os.environ["KIVY_NO_CONSOLELOG"] = "1"
 os.environ["KIVY_NO_CONFIG"] = "1"
-os.environ["KIVY_CLOCK"] = "default"
-os.environ["KIVY_NO_SPLASH"] = "1"  # ✅ desativa logo do Kivy
+os.environ["KIVY_NO_SPLASH"] = "1"  # ✅ remove o splash "Kivy Loading..."
+
 import matplotlib
 matplotlib.use("Agg")  # Backend não interativo (sem UI)
 import ssl
