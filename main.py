@@ -3,6 +3,7 @@ matplotlib.use("Agg")  # Backend não interativo (sem UI)
 import ssl
 ssl._create_default_https_context = ssl._create_unverified_context 
 from kivymd.app import MDApp
+from kivy.utils import platform 
 from kivymd.uix.button import MDRectangleFlatButton, MDRaisedButton
 from kivymd.uix.card import MDCard
 from kivymd.uix.pickers import MDDatePicker
@@ -1169,11 +1170,13 @@ class OceanStream(MDApp):
                 Permission.WRITE_EXTERNAL_STORAGE
             ])
         
-        # Configurações específicas para Android
+        from kivy.core.window import Window
+
         if platform == 'android':
-            from kivy.core.window import Window
-            Window.softinput_mode = 'below_target'
-            Window.size = (360, 640)  # Tamanho inicial para mobile
+            Window.softinput_mode = 'resize'
+        else:
+            Window.size = (360, 640)
+
 
         self.root_layout = FloatLayout()
         self.gerenciador = GerenciadorTelas()

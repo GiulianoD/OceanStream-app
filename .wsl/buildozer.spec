@@ -63,3 +63,9 @@ android.release_keystore_passwd = JRuano
 
 # (android) The password for the alias
 android.release_alias_passwd = JRuano
+
+fullscreen = 1
+android.enable_optimizations = True
+log_level = 2
+android.allow_backup = 0
+android.hardwareAccelerated = 1
