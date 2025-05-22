@@ -1,36 +1,50 @@
-from kivymd.app import MDApp
-from kivymd.uix.button import MDRectangleFlatButton, MDRaisedButton
-from kivymd.uix.card import MDCard
-from kivymd.uix.label import MDLabel
-from kivymd.uix.menu import MDDropdownMenu
-from kivymd.uix.pickers import MDDatePicker
-from kivymd.uix.screen import MDScreen
-from kivymd.uix.screenmanager import MDScreenManager
-from kivymd.uix.selectioncontrol import MDCheckbox
-from kivy_garden.matplotlib import FigureCanvasKivyAgg
-from kivy.animation import Animation
-from kivy.core.window import Window
-from kivy.clock import Clock
-from kivy.config import Config
-from kivy.lang import Builder
-from kivy.logger import Logger
-from kivy.metrics import dp
-from kivy.properties import ObjectProperty, ListProperty
-from kivy.uix.image import Image
-from kivy.uix.scrollview import ScrollView  # se ainda não tiver
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.label import Label
-from kivy.uix.widget import Widget
-from kivy.utils import platform
-from datetime import datetime, timedelta
-import requests
-from threading import Thread
-import matplotlib.pyplot as plt
+import os
+os.environ["KIVY_NO_ARGS"] = "1"
+os.environ["KIVY_NO_FILELOG"] = "1"
+os.environ["KIVY_NO_CONSOLELOG"] = "1"
+os.environ["KIVY_NO_CONFIG"] = "1"
+os.environ["KIVY_NO_SPLASH"] = "1"  # ✅ remove o splash "Kivy Loading..."
+
 import matplotlib
 matplotlib.use("Agg")  # Backend não interativo (sem UI)
 import ssl
 ssl._create_default_https_context = ssl._create_unverified_context 
+from kivymd.app import MDApp
+from kivy.utils import platform 
+from kivymd.uix.button import MDRectangleFlatButton, MDRaisedButton
+from kivymd.uix.card import MDCard
+from kivymd.uix.label import MDLabel
+from kivymd.uix.pickers import MDDatePicker
+from kivymd.uix.screen import MDScreen
+from kivymd.uix.screenmanager import MDScreenManager
+from kivymd.uix.selectioncontrol import MDCheckbox
+from kivy.clock import Clock
+from kivy.config import Config
+from kivy.lang import Builder
+from kivy.properties import ObjectProperty, ListProperty
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.label import Label
+from kivy.uix.widget import Widget
+from plyer import storagepath
+from datetime import datetime, timedelta
+import json
+import requests
+import os
+import jwt
+from threading import Thread
+from kivy.animation import Animation
+from kivy.core.window import Window
+from kivy_garden.matplotlib import FigureCanvasKivyAgg
+import matplotlib.pyplot as plt
+from kivy.metrics import dp
+from kivy.uix.image import Image
+from kivy.uix.scrollview import ScrollView  # se ainda não tiver
+from kivymd.uix.menu import MDDropdownMenu
+from kivy.utils import platform
+from kivy.logger import Logger
+
+
 
 class StyledCheckbox(MDCheckbox):
     def __init__(self, **kwargs):
@@ -48,15 +62,240 @@ class StyledCheckbox(MDCheckbox):
 
 Config.set('graphics', 'multisamples', '0')
 
-from funcs.navigation_bar import NavigationBar
-from funcs.json import ler_arquivo_json, salvar_cards
-from funcs.requisicoes import login, api_ultimosDados, api_dados
-from funcs.storage import get_access_token, is_token_valid, delete_access_token
-from funcs.constantes import PARAMETROS_IMAGENS, EQUIPAMENTOS_TABELAS, CABECALHO_TABELA
+from navigation_bar import NavigationBar  # Importando a barra de navegação
 
-# JSON
+
+# Mapeamento de parâmetros para imagens
+PARAMETROS_IMAGENS = {
+    "Bateria":                 "res/bateria.png",                                                     # Corrente
+    "Vel. Corr.":              "res/corrente- oceanstream.png",                                       # Corrente
+    "Dir. Corr.":              "res/corrente-seta-direita.png",                                       # Corrente
+    "Pitch":                   "res/Pitch-Roll.png",                                                  # Corrente
+    "Roll":                    "res/Pitch-Roll.png",                                                  # Corrente
+    "Altura Onda":             "res/Onda com linha- oceanstream.png",                                 # Onda
+    "Período Onda":            "res/Onda - oceanstream.png",                                          # Onda
+    "Altura":                  "res/Onda com linha- oceanstream.png",                                 # Ondógrafo
+    "Período":                 "res/Onda - oceanstream.png",                                          # Ondógrafo
+    "Maré Reduzida":           "res/Régua maregrafo com seta - oceanstream (2).png",                  # Marégrafo
+    "Vel. Vento":              "res/Pressão atmosférica - oceanstream.png",                           # Est.M
+    "Rajada":                  "res/Pressão atmosférica - oceanstream.png",                           # Est.M
+    "Dir. Vento":              "res/Rosa dos ventos - com direção de cor diferente-oceanstream.png",  # Est.M
+    "Chuva":                   "res/Chuva - oceanstream.png",                                         # Est.M
+}
+# Mapeamento dos equipamentos para os nomes das tabelas
+EQUIPAMENTOS_TABELAS = {
+    "Boia 04 - Corrente": "ADCP-Boia04_corrente",
+    "Boia 08 - Corrente": "ADCP-Boia08_corrente",
+    "Boia 10 - Corrente": "ADCP-Boia10_corrente",
+    "Boia 04 - Onda": "ADCP-Boia04_onda",
+    "Boia 08 - Onda": "ADCP-Boia08_onda",
+    "Boia 10 - Onda": "ADCP-Boia10_onda",
+    "Ondógrafo Píer-II": "Ondografo-PII_tab_parametros",
+    "Ondógrafo TGL": "Ondografo-TGL_tab_parametros",
+    "Ondógrafo TPD": "Ondografo-TPD_tab_parametros",
+    "Ondógrafo TPM": "Ondografo-TPM_tab_parametros",
+    "Marégrafo": "Maregrafo-TU_Maregrafo_Troll",
+    "Estação Meteorológica": "TU_Estacao_Meteorologica"
+}
+# Cabecalho da tabela na tela Equipamento
+CABECALHO_TABELA = {
+    '_corrente': [
+        ['TmStamp', 'TimeStamp']
+        # ,['PNORS_Pitch', 'Pitch']
+        # ,['PNORS_Roll', 'Roll']
+        ,['vel11', 'Velocidade']
+        ,['dir11', 'Direção (°)']
+        ,['PNORS_Battery_Voltage', 'Bateria (V)']
+    ]
+}
+### JWT
+JWT_FILE = "oceanstream.jwt"
+
+def get_storage_path():
+    if platform == 'android':
+        from android.storage import app_storage_path
+        return app_storage_path()
+    else:
+        return storagepath.get_home_dir()
+
+def store_access_token(token):
+    app_storage_dir = get_storage_path()
+    token_file_path = os.path.join(app_storage_dir, JWT_FILE)
+    try:
+        with open(token_file_path, 'w') as token_file:
+            token_file.write(token)
+        Logger.info(f"Token salvo em {token_file_path}")
+    except Exception as e:
+        Logger.error(f"Erro ao salvar token: {str(e)}")
+
+def get_access_token():
+    app_storage_dir = get_storage_path()
+    token_file_path = os.path.join(app_storage_dir, JWT_FILE)
+    if os.path.exists(token_file_path):
+        try:
+            with open(token_file_path, 'r') as token_file:
+                token = token_file.read()
+                Logger.info("JWT recuperado.")
+                return token
+        except Exception as e:
+            Logger.error(f"Erro ao ler token: {str(e)}")
+            return ""
+    else:
+        Logger.info("Nenhum token encontrado.")
+        return ""
+
+def delete_access_token():
+    app_storage_dir = storagepath.get_home_dir()
+    token_file_path = os.path.join(app_storage_dir, JWT_FILE)
+    if os.path.exists(token_file_path):
+        os.remove(token_file_path)
+        print("Token deletado.")
+    else:
+        print("Nenhum token para deletar.")
+
+def is_token_valid(token):
+    try:
+        decoded_token = jwt.decode(token, options={"verify_signature": False})
+        exp_timestamp = decoded_token.get('exp')
+        if exp_timestamp:
+            exp_date = datetime.fromtimestamp(exp_timestamp)
+            if exp_date > datetime.now():
+                return True
+        return False
+    except Exception as e:
+        print(f"Erro ao verificar token: {str(e)}")
+        return False
+
+### JSON
+
+def ler_arquivo_json(caminho_arquivo):
+    try:
+        with open(caminho_arquivo, "r", encoding="utf-8") as arquivo:
+            dados = json.load(arquivo)
+        print("JSON carregado com sucesso!")
+        return dados
+    except FileNotFoundError:
+        print(f"Erro: O arquivo '{caminho_arquivo}' não foi encontrado.")
+    except json.JSONDecodeError as e:
+        print(f"Erro ao decodificar o JSON: {e}")
+    return None
+
+def salvar_arquivo_json(data, caminho_arquivo):
+    try:
+        with open(caminho_arquivo, "w", encoding="utf-8") as file:
+            json.dump(data, file, ensure_ascii=False, indent=4)
+    except Exception as e:
+        print(f"Erro ao salvar JSON: {e}")
+
+def salvar_cards(dict):
+    dict_completo = {
+        "nome": "Overview - Cards",
+        "atualizado_em": str(datetime.now()),
+        "cartoes": dict
+    }
+    salvar_arquivo_json(data=dict_completo, caminho_arquivo='data/cards.json')
 
 dados_cards = ler_arquivo_json(caminho_arquivo='data/cards.json')
+
+### API
+API_PRFX = "https://oceanstream-8b3329b99e40.herokuapp.com/"
+
+def verifica_formato_data(data):
+    """Verifica se a data está no formato YYYY-MM-DD."""
+    try:
+        datetime.strptime(data, "%Y-%m-%d")
+        return True
+    except ValueError:
+        return False
+
+# POST /dados
+def api_dados(nome_tabela, start_date, end_date):
+    # Verifica o formato das datas
+    if not (verifica_formato_data(start_date) and verifica_formato_data(end_date)):
+        return
+
+    # Adiciona o horário ao final da data final
+    end_date = f"{end_date} 23:59:59"
+
+    # Corpo da requisição
+    corpo = {
+        "tabela": nome_tabela,
+        "dt_inicial": start_date,
+        "dt_final": end_date
+    }
+
+    # Cabeçalhos da requisição
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {get_access_token()}"
+    }
+
+    # URL da API
+    url = API_PRFX+"dados"
+
+    # Faz a requisição POST
+    try:
+        response = requests.post(url, headers=headers, json=corpo)
+
+        # Verifica se a requisição foi bem-sucedida
+        if response.status_code != 200:
+            raise Exception(f"Erro na requisição: {response.status_code} - {response.text}")
+
+        # Converte a resposta para JSON
+        data = response.json()
+
+        return data
+
+    except Exception as error:
+        print(f"Erro: {error}")
+
+# GET /ultimosDados
+def api_ultimosDados():
+    # Cabeçalhos da requisição
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {get_access_token()}"
+    }
+
+    # URL da API
+    url = API_PRFX+"ultimosDados"
+
+    # Faz a requisição POST
+    try:
+        response = requests.get(url, headers=headers)
+
+        # Verifica se a requisição foi bem-sucedida
+        if response.status_code != 200:
+            raise Exception(f"Erro na requisição: {response.status_code} - {response.text}")
+
+        # Converte a resposta para JSON
+        data = response.json()
+
+        return data
+
+    except Exception as error:
+        print(f"Erro: {error}")
+
+# POST /login
+def login(email, senha):
+    url = API_PRFX+'login'
+    headers = {'Content-Type': 'application/json'}
+    corpo = {"email": email, "senha": senha}
+    try:
+        response = requests.post(url, json=corpo, headers=headers)
+        if response.status_code == 200:
+            data = response.json()
+            access_token = data.get('accessToken')
+            store_access_token(access_token)
+            return [True, '']
+        else:
+            msg = f"Falha no login: {response.status_code} - {response.text}"
+            print(msg)
+    except Exception as e:
+        msg = f"Erro ao tentar fazer login: {str(e)}"
+        print(msg)
+    
+    return [False, msg]
 
 ### Telas
 
@@ -248,55 +487,51 @@ class Overview(MDScreen):
 
 
     def _generate_cards_threaded(self):
-        try:
-            app = MDApp.get_running_app()
-            selected_parameters = app.selected_parameters
-            ultimosDados = api_ultimosDados()  # Isso ainda deve ser movido para thread
+        app = MDApp.get_running_app()
+        selected_parameters = app.selected_parameters
+        ultimosDados = api_ultimosDados()
+        
+        # Prepara os dados que serão usados na UI
+        cards_data = []
+        for idx, config in enumerate(self.card_configs):
+            equipment = config.get("text")
+            is_active = equipment in selected_parameters
+            if not is_active:
+                continue
+
+            dados = self.identifica_e_retorna_dados(equipment=equipment, ultimosDados=ultimosDados)
+            if len(dados) == 2:
+                data_hora = dados[0]['TmStamp']
+                awac = True
+            else:
+                data_hora = dados['TmStamp']
+                awac = False
+
+            data_hora = data_hora[:-5]
+            imagens_dados = []
             
-            # Preparar dados fora da UI thread
-            cards_data = []
-            for idx, config in enumerate(self.card_configs):
-                equipment = config.get("text")
-                is_active = equipment in selected_parameters
-                if not is_active:
-                    continue
-
-                dados = self.identifica_e_retorna_dados(equipment=equipment, ultimosDados=ultimosDados)
-                if len(dados) == 2:
-                    data_hora = dados[0]['TmStamp']
-                    awac = True
-                else:
-                    data_hora = dados['TmStamp']
-                    awac = False
-
-                data_hora = data_hora[:-5]
-                imagens_dados = []
-                
-                for param in selected_parameters[equipment]:
-                    if param in PARAMETROS_IMAGENS:
-                        coluna = self.dicionario_parametros[param]
-                        if awac:
-                            if 'PNORW' in coluna:
-                                dado = f"{dados[1][coluna]:.2f}"
-                            else:
-                                dado = f"{dados[0][coluna]:.2f}"
+            for param in selected_parameters[equipment]:
+                if param in PARAMETROS_IMAGENS:
+                    coluna = self.dicionario_parametros[param]
+                    if awac:
+                        if 'PNORW' in coluna:
+                            dado = f"{dados[1][coluna]:.2f}"
                         else:
-                            dado = f"{dados[coluna]:.2f}"
-                        imagens_dados.append((PARAMETROS_IMAGENS[param], param, dado))
+                            dado = f"{dados[0][coluna]:.2f}"
+                    else:
+                        dado = f"{dados[coluna]:.2f}"
+                    imagens_dados.append((PARAMETROS_IMAGENS[param], param, dado))
 
-                cards_data.append({
-                    'equipment': equipment,
-                    'data_hora': data_hora,
-                    'imagens_dados': imagens_dados,
-                    'config': config,
-                    'idx': idx
-                })
+            cards_data.append({
+                'equipment': equipment,
+                'data_hora': data_hora,
+                'imagens_dados': imagens_dados,
+                'config': config,
+                'idx': idx
+            })
 
-            # Agendar atualização UI
-            Clock.schedule_once(lambda dt: self._update_ui(cards_data))
-        except Exception as e:
-            Logger.error(f"Erro ao gerar cards: {str(e)}")
-            Clock.schedule_once(lambda dt: self._show_error("Falha ao carregar dados"))
+        # Agendando a atualização da UI na thread principal
+        Clock.schedule_once(lambda dt: self._update_ui(cards_data))
 
     def _update_ui(self, cards_data):
         self.cards_data = cards_data      # Armazena os dados para uso em partes
@@ -380,7 +615,6 @@ class Equipamento(MDScreen):
     cor_label = (0, 0, 0, 1)
     is_landscape = False  # Estado atual da orientação
     canvas_widget = None  # Armazena o widget do gráfico para remoção correta
-    TIPOS_EQUIPAMENTO = { '_corrente', '_onda', 'Ondografo', 'Estacao', 'Maregrafo' }
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -508,19 +742,30 @@ class Equipamento(MDScreen):
     def req_api(self, start_date, end_date, equip=None):
         # esvazia lista de dados
         self.data = []
-
+        
         # Usa o equipamento passado como parâmetro ou o atual
         equipamento = equip if equip else self.equip
-
+        
         # Obtém os dados da API
         dados = api_dados(equipamento, start_date, end_date)
-
+        
         # Processa os dados conforme o tipo de equipamento
-        for e in self.TIPOS_EQUIPAMENTO:
-            if e in equipamento:
-                colunas = CABECALHO_TABELA[e]
-                for d in dados:
-                    self.data.append([ d[c[0]] for c in colunas ])
+        if '_corrente' in equipamento:
+            for d in dados:
+                colunas_corr = CABECALHO_TABELA['_corrente']
+                self.data.append([ d[c[0]] for c in colunas_corr ])
+        elif '_onda' in equipamento:
+            for d in dados:
+                self.data.append([d['TmStamp'], d['PNORW_Hm0'], d['PNORW_Tp'], d['PNORW_DirTp']])
+        elif 'Ondografo' in equipamento:
+            for d in dados:
+                self.data.append([d['TmStamp'], d['hm0_alisado'], d['tp_alisado']])
+        elif 'Estacao' in equipamento:
+            for d in dados:
+                self.data.append([d['TmStamp'], d['Velocidade_Vento'], d['Rajada_Vento'], d['Direcao_Vento'], d['Chuva']])
+        elif 'Maregrafo' in equipamento:
+            for d in dados:
+                self.data.append([d['TmStamp'], d['Mare_Reduzida']])
 
         self.data.reverse()
         self.update_table()
@@ -534,13 +779,44 @@ class Equipamento(MDScreen):
         table.clear_widgets()
 
         # Adiciona o cabeçalho
-        for e in self.TIPOS_EQUIPAMENTO:
-            if e in self.equip:
-                colunas = CABECALHO_TABELA[e]
-                table.cols = len(colunas)
-                table_h.cols = len(colunas)
-                for coluna in colunas:
-                    table_h.add_widget(Label(text=coluna[1], bold=True, color=self.cor_label))
+        if '_corrente' in self.equip: # ADCP Corrente
+            colunas_corr = CABECALHO_TABELA['_corrente']
+            table.cols = len(colunas_corr)
+            table_h.cols = len(colunas_corr)
+            for coluna in colunas_corr:
+                table_h.add_widget(Label(text=coluna[1], bold=True, color=self.cor_label))
+            # table_h.add_widget(Label(text="TimeStamp", bold=True, color=self.cor_label))
+            # table_h.add_widget(Label(text="Pitch", bold=True, color=self.cor_label))
+            # table_h.add_widget(Label(text="Roll", bold=True, color=self.cor_label))
+            # table_h.add_widget(Label(text="Velocidade", bold=True, color=self.cor_label))
+            # table_h.add_widget(Label(text="Direção (°)", bold=True, color=self.cor_label))
+            # table_h.add_widget(Label(text="Bateria (V)", bold=True, color=self.cor_label))
+        if '_onda' in self.equip:
+            table.cols = 4
+            table_h.cols = 4
+            table_h.add_widget(Label(text="TimeStamp", bold=True, color=self.cor_label))
+            table_h.add_widget(Label(text="Altura (m)", bold=True, color=self.cor_label))
+            table_h.add_widget(Label(text="Período (s)", bold=True, color=self.cor_label))
+            table_h.add_widget(Label(text="Direção (°)", bold=True, color=self.cor_label))
+        if 'Ondografo' in self.equip:
+            table.cols = 3
+            table_h.cols = 3
+            table_h.add_widget(Label(text="TimeStamp", bold=True, color=self.cor_label))
+            table_h.add_widget(Label(text="Altura (m)", bold=True, color=self.cor_label))
+            table_h.add_widget(Label(text="Período (s)", bold=True, color=self.cor_label))
+        if 'Estacao' in self.equip:
+            table.cols = 5
+            table_h.cols = 5
+            table_h.add_widget(Label(text="TimeStamp", bold=True, color=self.cor_label))
+            table_h.add_widget(Label(text="Vel. Vento", bold=True, color=self.cor_label))
+            table_h.add_widget(Label(text="Rajada", bold=True, color=self.cor_label))
+            table_h.add_widget(Label(text="Dir. Vento (°)", bold=True, color=self.cor_label))
+            table_h.add_widget(Label(text="Chuva (mm)", bold=True, color=self.cor_label))
+        if 'Maregrafo' in self.equip:
+            table.cols = 2
+            table_h.cols = 2
+            table_h.add_widget(Label(text="TimeStamp", bold=True, color=self.cor_label))
+            table_h.add_widget(Label(text="Maré Reduzida (m)", bold=True, color=self.cor_label))
 
         # Adiciona os dados
         for row in self.data:
