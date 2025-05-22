@@ -2,8 +2,8 @@ from datetime import datetime
 import requests
 
 from funcs.storage import store_access_token, get_access_token
-from funcs.constantes import API_PRFX
 
+API_PRFX = "https://oceanstream-8b3329b99e40.herokuapp.com/"
 
 def verifica_formato_data(data):
     """Verifica se a data está no formato YYYY-MM-DD."""

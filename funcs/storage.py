@@ -5,21 +5,14 @@ from kivy.utils import platform
 from kivy.logger import Logger
 from datetime import datetime
 
-from funcs.constantes import JWT_FILE
+### JWT
+JWT_FILE = "oceanstream.jwt"
 
 def get_storage_path():
     """Obtém o caminho de armazenamento apropriado para cada plataforma"""
     if platform == 'android':
-        try:
-            from android.storage import app_storage_path
-            path = app_storage_path()
-            # Garante que o diretório existe
-            if not os.path.exists(path):
-                os.makedirs(path)
-            return path
-        except Exception as e:
-            Logger.error(f"Erro ao obter storage no Android: {str(e)}")
-            return os.path.expanduser("~")
+        from android.storage import app_storage_path
+        return app_storage_path()
     else:
         return storagepath.get_home_dir()
 
@@ -34,7 +27,7 @@ def store_access_token(token):
             # Garante que o diretório existe no Android
             if not os.path.exists(app_storage_dir):
                 os.makedirs(app_storage_dir)
-
+        
         with open(token_file_path, 'w') as token_file:
             token_file.write(token)
         Logger.info(f"Token salvo em {token_file_path}")
@@ -99,21 +92,25 @@ def delete_access_token():
 def is_token_valid(token):
     """Verifica se o token JWT é válido e não expirado"""
     if not token:
-        Logger.info("Token vazio")
         return False
-
+        
     try:
-        # Decodifica sem verificar assinatura (mais rápido)
         decoded_token = jwt.decode(token, options={"verify_signature": False})
         exp_timestamp = decoded_token.get('exp')
-
+        
         if exp_timestamp:
-            current_timestamp = datetime.now().timestamp()
-            if exp_timestamp > current_timestamp:
-                Logger.info("Token válido")
+            exp_date = datetime.fromtimestamp(exp_timestamp)
+            if exp_date > datetime.now():
+                Logger.info("Token válido e dentro do prazo.")
                 return True
-
-        Logger.info("Token expirado ou sem timestamp")
+                
+        Logger.info("Token expirado ou inválido.")
+        return False
+    except jwt.ExpiredSignatureError:
+        Logger.info("Token expirado.")
+        return False
+    except jwt.InvalidTokenError as e:
+        Logger.error(f"Token inválido: {str(e)}")
         return False
     except Exception as e:
         Logger.error(f"Erro ao verificar token: {str(e)}")
