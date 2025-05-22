@@ -17,7 +17,7 @@ from kivy.logger import Logger
 from kivy.metrics import dp
 from kivy.properties import ObjectProperty, ListProperty
 from kivy.uix.image import Image
-from kivy.uix.scrollview import ScrollView  # se ainda não tiver
+from kivy.uix.scrollview import ScrollView
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.label import Label
@@ -49,12 +49,34 @@ class StyledCheckbox(MDCheckbox):
 Config.set('graphics', 'multisamples', '0')
 
 from funcs.navigation_bar import NavigationBar
-from funcs.json import ler_arquivo_json, salvar_cards
+from funcs.token import ler_arquivo_json, salvar_cards
 from funcs.requisicoes import login, api_ultimosDados, api_dados
 from funcs.storage import get_access_token, is_token_valid, delete_access_token
 from funcs.constantes import PARAMETROS_IMAGENS, EQUIPAMENTOS_TABELAS, CABECALHO_TABELA
 
-# JSON
+def ensure_permissions():
+    if platform == 'android':
+        from android.permissions import request_permissions, Permission, check_permission
+        needed_perms = [
+            Permission.READ_EXTERNAL_STORAGE,
+            Permission.WRITE_EXTERNAL_STORAGE,
+            Permission.INTERNET
+        ]
+
+        # Verifica se já tem permissões
+        has_perms = all(check_permission(p) for p in needed_perms)
+
+        if not has_perms:
+            # Solicita permissões de forma assíncrona
+            def callback(permissions, grants):
+                if all(grants):
+                    Logger.info("Todas as permissões concedidas")
+                else:
+                    Logger.error("Algumas permissões foram negadas")
+
+            request_permissions(needed_perms, callback)
+
+    return True
 
 dados_cards = ler_arquivo_json(caminho_arquivo='data/cards.json')
 
@@ -248,55 +270,51 @@ class Overview(MDScreen):
 
 
     def _generate_cards_threaded(self):
-        try:
-            app = MDApp.get_running_app()
-            selected_parameters = app.selected_parameters
-            ultimosDados = api_ultimosDados()  # Isso ainda deve ser movido para thread
+        app = MDApp.get_running_app()
+        selected_parameters = app.selected_parameters
+        ultimosDados = api_ultimosDados()
+        
+        # Prepara os dados que serão usados na UI
+        cards_data = []
+        for idx, config in enumerate(self.card_configs):
+            equipment = config.get("text")
+            is_active = equipment in selected_parameters
+            if not is_active:
+                continue
+
+            dados = self.identifica_e_retorna_dados(equipment=equipment, ultimosDados=ultimosDados)
+            if len(dados) == 2:
+                data_hora = dados[0]['TmStamp']
+                awac = True
+            else:
+                data_hora = dados['TmStamp']
+                awac = False
+
+            data_hora = data_hora[:-5]
+            imagens_dados = []
             
-            # Preparar dados fora da UI thread
-            cards_data = []
-            for idx, config in enumerate(self.card_configs):
-                equipment = config.get("text")
-                is_active = equipment in selected_parameters
-                if not is_active:
-                    continue
-
-                dados = self.identifica_e_retorna_dados(equipment=equipment, ultimosDados=ultimosDados)
-                if len(dados) == 2:
-                    data_hora = dados[0]['TmStamp']
-                    awac = True
-                else:
-                    data_hora = dados['TmStamp']
-                    awac = False
-
-                data_hora = data_hora[:-5]
-                imagens_dados = []
-                
-                for param in selected_parameters[equipment]:
-                    if param in PARAMETROS_IMAGENS:
-                        coluna = self.dicionario_parametros[param]
-                        if awac:
-                            if 'PNORW' in coluna:
-                                dado = f"{dados[1][coluna]:.2f}"
-                            else:
-                                dado = f"{dados[0][coluna]:.2f}"
+            for param in selected_parameters[equipment]:
+                if param in PARAMETROS_IMAGENS:
+                    coluna = self.dicionario_parametros[param]
+                    if awac:
+                        if 'PNORW' in coluna:
+                            dado = f"{dados[1][coluna]:.2f}"
                         else:
-                            dado = f"{dados[coluna]:.2f}"
-                        imagens_dados.append((PARAMETROS_IMAGENS[param], param, dado))
+                            dado = f"{dados[0][coluna]:.2f}"
+                    else:
+                        dado = f"{dados[coluna]:.2f}"
+                    imagens_dados.append((PARAMETROS_IMAGENS[param], param, dado))
 
-                cards_data.append({
-                    'equipment': equipment,
-                    'data_hora': data_hora,
-                    'imagens_dados': imagens_dados,
-                    'config': config,
-                    'idx': idx
-                })
+            cards_data.append({
+                'equipment': equipment,
+                'data_hora': data_hora,
+                'imagens_dados': imagens_dados,
+                'config': config,
+                'idx': idx
+            })
 
-            # Agendar atualização UI
-            Clock.schedule_once(lambda dt: self._update_ui(cards_data))
-        except Exception as e:
-            Logger.error(f"Erro ao gerar cards: {str(e)}")
-            Clock.schedule_once(lambda dt: self._show_error("Falha ao carregar dados"))
+        # Agendando a atualização da UI na thread principal
+        Clock.schedule_once(lambda dt: self._update_ui(cards_data))
 
     def _update_ui(self, cards_data):
         self.cards_data = cards_data      # Armazena os dados para uso em partes
@@ -495,7 +513,7 @@ class Equipamento(MDScreen):
 
     def set_start_date(self, instance, value, date_range):
         self.start_date_btn.text = value.strftime("%Y-%m-%d")
-    
+
     def show_end_date_picker(self, instance):
         """ Abre o seletor de data para a data de fim """
         date_dialog = MDDatePicker()
@@ -542,11 +560,15 @@ class Equipamento(MDScreen):
                 for coluna in colunas:
                     table_h.add_widget(Label(text=coluna[1], bold=True, color=self.cor_label))
 
-        # Adiciona os dados
+        # Adiciona os dados com tratamento para None/NaN
         for row in self.data:
             for cell in row:
-                table.add_widget(Label(text=cell, color=self.cor_label))
-    
+                # Trata valores None, NaN ou strings vazias
+                if cell is None:
+                    table.add_widget(Label(text="-", color=self.cor_label))
+                else:
+                    table.add_widget(Label(text=str(cell), color=self.cor_label))
+
     def validate_dates(self, instance):
         """ Valida o intervalo de datas selecionado pelo usuário e atualiza os dados """
         start_date = self.start_date_btn.text
@@ -892,16 +914,21 @@ class SplashScreen(MDScreen):
         Clock.schedule_once(self.verifica_token, 5.5)  # <- espera suficiente
 
     def verifica_token(self, *args):
-        print(">>> Verificando token")
-        app = MDApp.get_running_app()
-
-        token = get_access_token()
-        if is_token_valid(token):
-            print(">>> Token válido")
-            app.gerenciador.current = "overview"
-        else:
-            print(">>> Token inválido ou não existe")
-            delete_access_token()
+        Logger.info(">>> Iniciando verificação de token")
+        try:
+            app = MDApp.get_running_app()
+            token = get_access_token()
+            Logger.info(f">>> Token encontrado: {bool(token)}")
+            
+            if is_token_valid(token):
+                Logger.info(">>> Token válido, indo para overview")
+                app.gerenciador.current = "overview"
+            else:
+                Logger.info(">>> Token inválido, indo para login")
+                delete_access_token()
+                app.gerenciador.current = "login"
+        except Exception as e:
+            Logger.error(f">>> ERRO na verificação: {str(e)}")
             app.gerenciador.current = "login"
 
 
@@ -921,41 +948,44 @@ class OceanStream(MDApp):
                     self.selected_parameters[equip['text']] = equip['selecionado'].copy()
 
     def build(self):
-        # Solicitar permissões no Android
-        if platform == 'android':
-            from android.permissions import request_permissions, Permission
-            request_permissions([
-                Permission.INTERNET,
-                Permission.READ_EXTERNAL_STORAGE,
-                Permission.WRITE_EXTERNAL_STORAGE
-            ])
+        # Verifica permissões antes de qualquer coisa
+        ensure_permissions()
         
         from kivy.core.window import Window
-
         if platform == 'android':
-            Window.softinput_mode = 'resize'
+            Window.softinput_mode = 'below_target'
+            
+            # Configuração para evitar crash no Android
+            from android import loadingscreen
+            loadingscreen.hide_loading_screen()
         else:
             Window.size = (360, 640)
 
-
+        self.theme_cls.primary_palette = "Blue"
+        self.theme_cls.accent_palette = "LightBlue"
+        
         self.root_layout = FloatLayout()
         self.gerenciador = GerenciadorTelas()
         
-        # Adiciona todas as telas
-        self.gerenciador.add_widget(SplashScreen(name='splash'))
-        self.gerenciador.add_widget(Overview(name='overview'))
-        self.gerenciador.add_widget(Alertas(name='alertas'))
-        self.gerenciador.add_widget(TelaLogin(name='login'))
-        self.gerenciador.add_widget(Configuracao(name='configuracao'))
-        self.gerenciador.add_widget(Equipamento(name='equipamento'))
+        # Adiciona telas
+        screens = [
+            SplashScreen(name='splash'),
+            Overview(name='overview'),
+            Alertas(name='alertas'),
+            TelaLogin(name='login'),
+            Configuracao(name='configuracao'),
+            Equipamento(name='equipamento')
+        ]
+        
+        for screen in screens:
+            self.gerenciador.add_widget(screen)
 
         self.gerenciador.bind(current=self.on_screen_change)
         self.gerenciador.size_hint = (1, 1)
         self.root_layout.add_widget(self.gerenciador)
-        
+
         self.navigation_bar = None
         self.gerenciador.current = 'splash'
-        
         return self.root_layout
 
     def toggle_parameter(self, equipment, parameter, state):

@@ -65,3 +65,9 @@ CABECALHO_TABELA = {
         ,['Mare_Reduzida', 'Maré Reduzida (m)']
     ]
 }
+
+# Nome do arquivo que armazenará o JWT
+JWT_FILE = "oceanstream.jwt"
+
+# URI padrão da API
+API_PRFX = "https://oceanstream-8b3329b99e40.herokuapp.com/"
