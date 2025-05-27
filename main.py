@@ -1,27 +1,24 @@
-import os
-os.environ["KIVY_NO_ARGS"] = "1"
-os.environ["KIVY_NO_FILELOG"] = "1"
-os.environ["KIVY_NO_CONSOLELOG"] = "1"
-os.environ["KIVY_NO_CONFIG"] = "1"
-os.environ["KIVY_NO_SPLASH"] = "1"  # ✅ remove o splash "Kivy Loading..."
-
-import matplotlib
-matplotlib.use("Agg")  # Backend não interativo (sem UI)
-import ssl
-ssl._create_default_https_context = ssl._create_unverified_context 
 from kivymd.app import MDApp
-from kivy.utils import platform 
 from kivymd.uix.button import MDRectangleFlatButton, MDRaisedButton
 from kivymd.uix.card import MDCard
 from kivymd.uix.label import MDLabel
+from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.pickers import MDDatePicker
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.screenmanager import MDScreenManager
 from kivymd.uix.selectioncontrol import MDCheckbox
+from kivy_garden.matplotlib import FigureCanvasKivyAgg
+from kivy.animation import Animation
 from kivy.clock import Clock
 from kivy.config import Config
+from kivy.core.window import Window
 from kivy.lang import Builder
+from kivy.logger import Logger
+from kivy.metrics import dp
 from kivy.properties import ObjectProperty, ListProperty
+from kivy.uix.image import Image
+from kivy.uix.scrollview import ScrollView
+from kivy.utils import platform
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.label import Label
@@ -33,17 +30,11 @@ import requests
 import os
 import jwt
 from threading import Thread
-from kivy.animation import Animation
-from kivy.core.window import Window
-from kivy_garden.matplotlib import FigureCanvasKivyAgg
 import matplotlib.pyplot as plt
-from kivy.metrics import dp
-from kivy.uix.image import Image
-from kivy.uix.scrollview import ScrollView  # se ainda não tiver
-from kivymd.uix.menu import MDDropdownMenu
-from kivy.utils import platform
-from kivy.logger import Logger
-
+import matplotlib
+matplotlib.use("Agg")  # Backend não interativo (sem UI)
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
 
 
 class StyledCheckbox(MDCheckbox):
@@ -51,6 +42,7 @@ class StyledCheckbox(MDCheckbox):
         super().__init__(**kwargs)
         self.inactive_color = (1, 1, 1, 1)  # Fundo branco quando desmarcado
         self.active_color = (0.2, 0.6, 1, 1)
+        self.size = (dp(48), dp(48))
         self.line_color_normal = (0.8, 0.8, 0.8, 1)  # Borda cinza claro antes de ser selecionado
 
     def animate_checkbox(self, state):
@@ -76,10 +68,10 @@ PARAMETROS_IMAGENS = {
     "Período Onda":            "res/Onda - oceanstream.png",                                          # Onda
     "Altura":                  "res/Onda com linha- oceanstream.png",                                 # Ondógrafo
     "Período":                 "res/Onda - oceanstream.png",                                          # Ondógrafo
-    "Maré Reduzida":           "res/Régua maregrafo com seta - oceanstream (2).png",                  # Marégrafo
-    "Vel. Vento":              "res/Pressão atmosférica - oceanstream.png",                           # Est.M
-    "Rajada":                  "res/Pressão atmosférica - oceanstream.png",                           # Est.M
-    "Dir. Vento":              "res/Rosa dos ventos - com direção de cor diferente-oceanstream.png",  # Est.M
+    "Maré Reduzida":           "res/Regua maregrafo com seta - oceanstream (2).png",                  # Marégrafo
+    "Vel. Vento":              "res/Pressao atmosferica - oceanstream.png",                           # Est.M
+    "Rajada":                  "res/Pressao atmosferica - oceanstream.png",                           # Est.M
+    "Dir. Vento":              "res/Rosa dos ventos - com direcao de cor diferente-oceanstream.png",  # Est.M
     "Chuva":                   "res/Chuva - oceanstream.png",                                         # Est.M
 }
 # Mapeamento dos equipamentos para os nomes das tabelas
@@ -100,12 +92,34 @@ EQUIPAMENTOS_TABELAS = {
 # Cabecalho da tabela na tela Equipamento
 CABECALHO_TABELA = {
     '_corrente': [
-        ['TmStamp', 'TimeStamp']
-        # ,['PNORS_Pitch', 'Pitch']
-        # ,['PNORS_Roll', 'Roll']
-        ,['vel11', 'Velocidade']
+        ['TmStamp', 'Data Hora']
+        ,['PNORS_Pitch', 'Pitch']
+        ,['PNORS_Roll', 'Roll']
+        ,['vel11', 'Vel. Corr.']
         ,['dir11', 'Direção (°)']
         ,['PNORS_Battery_Voltage', 'Bateria (V)']
+    ],
+    '_onda': [
+        ['TmStamp', 'Data Hora']
+        ,['PNORW_Hm0', 'Altura (m)']
+        ,['PNORW_Tp', 'Período (s)']
+        ,['PNORW_DirTp', 'Direção (°)']
+    ],
+    'Ondografo': [
+        ['TmStamp', 'Data Hora']
+        ,['hm0_alisado', 'Altura (m)']
+        ,['tp_alisado', 'Período (s)']
+    ],
+    'Estacao': [
+        ['TmStamp', 'Data Hora']
+        ,['Velocidade_Vento', 'Vel. Vento']
+        ,['Rajada_Vento', 'Rajada']
+        ,['Direcao_Vento', 'Dir. Vento (°)']
+        ,['Chuva', 'Chuva (mm)']
+    ],
+    'Maregrafo': [
+        ['TmStamp', 'Data Hora']
+        ,['Mare_Reduzida', 'Maré Reduzida (m)']
     ]
 }
 ### JWT
@@ -309,17 +323,17 @@ Builder.load_file('paginas/equipamento.kv')
 class CardOverview(MDCard):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.tamanho = (80, 60)  # ou (width, height) ideal para suas imagens
+        self.tamanho = (dp(80), dp(60))  # ou (width, height) ideal para suas imagens
 
     def add_image_scrollable(self, imagens_dados, target_layout=None):
         """Adiciona uma linha horizontal scrollável de imagens com labels dentro de um layout específico (FloatLayout ou direto no Card)."""
-        altura_total = self.tamanho[1] + 60
+        altura_total = self.tamanho[1] + dp(60)
 
         scroll = ScrollView(
             size_hint=(1, None),
             height=altura_total,
             scroll_type=['bars', 'content'],
-            bar_width=2,
+            bar_width=dp(2),
             do_scroll_x=True,
             do_scroll_y=False,
             pos_hint={"top": 1}
@@ -329,8 +343,8 @@ class CardOverview(MDCard):
             orientation='horizontal',
             size_hint_x=None,
             height=altura_total,
-                padding=[10, 20, 40, 10],  # esquerda, cima, direita, baixo
-            spacing=20
+                padding=[dp(10), dp(20), dp(40), dp(10)],  # esquerda, cima, direita, baixo
+            spacing=dp(20)
         )
         image_row.bind(minimum_width=image_row.setter('width'))
 
@@ -345,7 +359,7 @@ class CardOverview(MDCard):
             top_label = Label(
                 text=top_text,
                 size_hint=(1, None),
-                height=25, 
+                height=dp(25),
                 color=(0, 0, 0, 1)
             )
 
@@ -360,7 +374,7 @@ class CardOverview(MDCard):
             bottom_label = Label(
                 text=str(bottom_text),
                 size_hint=(1, None),
-                height=20,
+                height=dp(20),
                 color=(0, 0, 0, 1)
             )
 
@@ -376,7 +390,7 @@ class CardOverview(MDCard):
             target_layout.add_widget(scroll)
         else:
             self.add_widget(scroll)
-            self.height = altura_total + 20
+            self.height = altura_total + dp(20)
 
 class Overview(MDScreen):
     def __init__(self, **kwargs):
@@ -409,8 +423,8 @@ class Overview(MDScreen):
 
         layout = BoxLayout(
             orientation='vertical',
-            spacing=10,
-            padding=[10, 10, 10, 10],
+            spacing=dp(10),
+            padding=[dp(10), dp(10), dp(10), dp(10)],
             size_hint=(1, None)
         )
         layout.bind(minimum_height=layout.setter("height"))
@@ -420,11 +434,12 @@ class Overview(MDScreen):
             card.add_image_scrollable(imagens_dados, target_layout=layout)
 
         # card.height = layout.height + 20
-        card.height = max(180, layout.height + 20)
+        card.height = max(dp(180), layout.height + dp(20))
         return card
 
     def card_minimizado(self, card, config, str_datetime, idx):
         return self.card_maximizado(card, config, str_datetime, idx)
+        # precisa converter para dp
         # falta inserir o datetime aqui no card minimizado
         card.visible = False
         card.clear_widgets()
@@ -557,10 +572,10 @@ class Overview(MDScreen):
             # Cria o header do card
             header_card = MDCard(
                 size_hint=(1, None),
-                height=40,
+                height=dp(40),
                 md_bg_color=(0.9, 0.9, 0.95, 1),
-                padding=[10, 5, 10, 5],
-                radius=[12, 12, 12, 12],
+                padding=[dp(10), dp(5), dp(10), dp(5)],
+                radius=[dp(12), dp(12), dp(12), dp(12)],
                 elevation=1,
             )
             header_label = Label(
@@ -615,6 +630,8 @@ class Equipamento(MDScreen):
     cor_label = (0, 0, 0, 1)
     is_landscape = False  # Estado atual da orientação
     canvas_widget = None  # Armazena o widget do gráfico para remoção correta
+
+    TIPOS_EQUIPAMENTO = { '_corrente', '_onda', 'Ondografo', 'Estacao', 'Maregrafo' }
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -701,8 +718,8 @@ class Equipamento(MDScreen):
         hoje_formatado = hoje.strftime("%Y-%m-%d")  # Formato YYYY-MM-DD
 
         # Dia de ontem
-        ontem = hoje - timedelta(days=1)
-        ontem_formatado = ontem.strftime("%Y-%m-%d")  # Formato YYYY-MM-DD
+        # ontem = hoje - timedelta(days=1)
+        # ontem_formatado = ontem.strftime("%Y-%m-%d")  # Formato YYYY-MM-DD
 
         # data inicial
         self.start_date_btn = MDRaisedButton(
@@ -750,22 +767,11 @@ class Equipamento(MDScreen):
         dados = api_dados(equipamento, start_date, end_date)
         
         # Processa os dados conforme o tipo de equipamento
-        if '_corrente' in equipamento:
-            for d in dados:
-                colunas_corr = CABECALHO_TABELA['_corrente']
-                self.data.append([ d[c[0]] for c in colunas_corr ])
-        elif '_onda' in equipamento:
-            for d in dados:
-                self.data.append([d['TmStamp'], d['PNORW_Hm0'], d['PNORW_Tp'], d['PNORW_DirTp']])
-        elif 'Ondografo' in equipamento:
-            for d in dados:
-                self.data.append([d['TmStamp'], d['hm0_alisado'], d['tp_alisado']])
-        elif 'Estacao' in equipamento:
-            for d in dados:
-                self.data.append([d['TmStamp'], d['Velocidade_Vento'], d['Rajada_Vento'], d['Direcao_Vento'], d['Chuva']])
-        elif 'Maregrafo' in equipamento:
-            for d in dados:
-                self.data.append([d['TmStamp'], d['Mare_Reduzida']])
+        for e in self.TIPOS_EQUIPAMENTO:
+            if e in equipamento:
+                colunas = CABECALHO_TABELA[e]
+                for d in dados:
+                    self.data.append([ d[c[0]] for c in colunas ])
 
         self.data.reverse()
         self.update_table()
@@ -778,50 +784,55 @@ class Equipamento(MDScreen):
         table_h.clear_widgets()
         table.clear_widgets()
 
-        # Adiciona o cabeçalho
-        if '_corrente' in self.equip: # ADCP Corrente
-            colunas_corr = CABECALHO_TABELA['_corrente']
-            table.cols = len(colunas_corr)
-            table_h.cols = len(colunas_corr)
-            for coluna in colunas_corr:
-                table_h.add_widget(Label(text=coluna[1], bold=True, color=self.cor_label))
-            # table_h.add_widget(Label(text="TimeStamp", bold=True, color=self.cor_label))
-            # table_h.add_widget(Label(text="Pitch", bold=True, color=self.cor_label))
-            # table_h.add_widget(Label(text="Roll", bold=True, color=self.cor_label))
-            # table_h.add_widget(Label(text="Velocidade", bold=True, color=self.cor_label))
-            # table_h.add_widget(Label(text="Direção (°)", bold=True, color=self.cor_label))
-            # table_h.add_widget(Label(text="Bateria (V)", bold=True, color=self.cor_label))
-        if '_onda' in self.equip:
-            table.cols = 4
-            table_h.cols = 4
-            table_h.add_widget(Label(text="TimeStamp", bold=True, color=self.cor_label))
-            table_h.add_widget(Label(text="Altura (m)", bold=True, color=self.cor_label))
-            table_h.add_widget(Label(text="Período (s)", bold=True, color=self.cor_label))
-            table_h.add_widget(Label(text="Direção (°)", bold=True, color=self.cor_label))
-        if 'Ondografo' in self.equip:
-            table.cols = 3
-            table_h.cols = 3
-            table_h.add_widget(Label(text="TimeStamp", bold=True, color=self.cor_label))
-            table_h.add_widget(Label(text="Altura (m)", bold=True, color=self.cor_label))
-            table_h.add_widget(Label(text="Período (s)", bold=True, color=self.cor_label))
-        if 'Estacao' in self.equip:
-            table.cols = 5
-            table_h.cols = 5
-            table_h.add_widget(Label(text="TimeStamp", bold=True, color=self.cor_label))
-            table_h.add_widget(Label(text="Vel. Vento", bold=True, color=self.cor_label))
-            table_h.add_widget(Label(text="Rajada", bold=True, color=self.cor_label))
-            table_h.add_widget(Label(text="Dir. Vento (°)", bold=True, color=self.cor_label))
-            table_h.add_widget(Label(text="Chuva (mm)", bold=True, color=self.cor_label))
-        if 'Maregrafo' in self.equip:
-            table.cols = 2
-            table_h.cols = 2
-            table_h.add_widget(Label(text="TimeStamp", bold=True, color=self.cor_label))
-            table_h.add_widget(Label(text="Maré Reduzida (m)", bold=True, color=self.cor_label))
+        tam_col_1 = dp(60)
 
-        # Adiciona os dados
+        # Adiciona o cabeçalho
+        for e in self.TIPOS_EQUIPAMENTO:
+            if e in self.equip:
+                colunas = CABECALHO_TABELA[e]
+                table.cols = len(colunas)
+                table_h.cols = len(colunas)
+                
+                # Define largura mínima das colunas (primeira coluna maior)
+                table_h.cols_minimum = {0: tam_col_1}  # Timestamp mais largo
+                table.cols_minimum = {0: tam_col_1}    # Timestamp mais largo
+                
+                for i, coluna in enumerate(colunas):
+                    # Primeira coluna com alinhamento à esquerda e tamanho maior
+                    # halign = 'left' if i == 0 else 'center'
+                    label = Label(
+                        text=coluna[1], 
+                        bold=True, 
+                        color=self.cor_label,
+                        font_size=dp(17),
+                        # halign=halign
+                    )
+                    if i == 0:  # Só para a primeira coluna
+                        label.text_size = (tam_col_1, None)  # Largura fixa para a primeira coluna
+                        # label.shorten = True  # Encurta texto longo com "..."
+                    table_h.add_widget(label)
+
+        # Função para tratar valores inválidos
+        def format_cell_value(value):
+            if value is None:
+                return "-"
+            return str(value)
+
+        # Adiciona os dados com tratamento
         for row in self.data:
-            for cell in row:
-                table.add_widget(Label(text=cell, color=self.cor_label))
+            for i, cell in enumerate(row):
+                # Primeira coluna com alinhamento à esquerda
+                # halign = 'left' if i == 0 else 'center'
+                label = Label(
+                    text=format_cell_value(cell),
+                    color=self.cor_label,
+                    font_size=dp(16),
+                    # halign=halign
+                )
+                if i == 0:  # Só para a primeira coluna
+                    label.text_size = (tam_col_1, None)  # Largura fixa para a primeira coluna
+                    # label.shorten = True  # Encurta texto longo com "..."
+                table.add_widget(label)
     
     def validate_dates(self, instance):
         """ Valida o intervalo de datas selecionado pelo usuário e atualiza os dados """
@@ -1188,7 +1199,7 @@ class OceanStream(MDApp):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.selected_parameters = {}
-        
+
         # Carrega as configurações do JSON
         dados_cards = ler_arquivo_json(caminho_arquivo='data/cards.json')
         if dados_cards:
@@ -1205,18 +1216,18 @@ class OceanStream(MDApp):
                 Permission.READ_EXTERNAL_STORAGE,
                 Permission.WRITE_EXTERNAL_STORAGE
             ])
-        
+
         from kivy.core.window import Window
 
         if platform == 'android':
             Window.softinput_mode = 'resize'
         else:
-            Window.size = (360, 640)
+            Window.size = (dp(360), dp(640))
 
 
         self.root_layout = FloatLayout()
         self.gerenciador = GerenciadorTelas()
-        
+
         # Adiciona todas as telas
         self.gerenciador.add_widget(SplashScreen(name='splash'))
         self.gerenciador.add_widget(Overview(name='overview'))
@@ -1228,10 +1239,10 @@ class OceanStream(MDApp):
         self.gerenciador.bind(current=self.on_screen_change)
         self.gerenciador.size_hint = (1, 1)
         self.root_layout.add_widget(self.gerenciador)
-        
+
         self.navigation_bar = None
         self.gerenciador.current = 'splash'
-        
+
         return self.root_layout
 
     def toggle_parameter(self, equipment, parameter, state):
