@@ -1,8 +1,9 @@
 #:kivy 2.3.0
 #:import utils kivy.utils
+#:import dp kivy.metrics.dp
 
 <Label>:
-    font_size: 18
+    font_size: dp(18)
     color: utils.get_color_from_hex('#FFFFFF')
     text_size: self.width, None
     valign: 'middle'
@@ -25,20 +26,20 @@
             # Header
             Label:
                 text: 'Porto de Tubarão - Overview'
-                font_size: 30
+                font_size: dp(30)
                 bold: True
                 color: utils.get_color_from_hex('#FFFFFF')
                 size_hint: (1, None)
-                height: 80
+                height: dp(80)
                 pos_hint: {'top': 1, 'x': 0}
 
             # Card branco principal
             MDCard:
                 id: main_card
-                padding: [0, 25, 0, 5]
+                padding: [0, dp(25), 0, dp(5)]
                 size_hint: (1, 1)
                 elevation: 4
-                radius: [60, 60, 0, 0]
+                radius: [dp(60), dp(60), 0, 0]
                 md_bg_color: utils.get_color_from_hex('#FFFFFF')
                 pos_hint: {'center_x': 0.5}
 
@@ -49,13 +50,13 @@
                     BoxLayout:
                         id: card_container
                         orientation: 'vertical'
-                        spacing: 5
-                        padding: 50
+                        spacing: dp(5)
+                        padding: dp(50)
                         size_hint_y: None
                         height: self.minimum_height  # Ajusta a altura conforme os widgets adicionados
 
 <CardOverview@MDCard>:
     size_hint: 1, None
-    height: 120
+    height: dp(120)
     elevation: 2
-    radius: [20, 20, 20, 20]
+    radius: [dp(20), dp(20), dp(20), dp(20)]

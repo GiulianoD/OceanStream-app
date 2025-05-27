@@ -17,8 +17,8 @@ source.include_exts = py,png,jpg,kv,atlas,json
 source.main = main.py
 
 # Inclui todo o conteúdo da pasta res (se você usa imagens lá)
-presplash.filename = res/logo.png
-android.presplash_color = #55E6C9
+#presplash.filename = res/logo.png
+#android.presplash_color = #55E6C9
 
 # Versão do app
 version = 0.1
@@ -63,3 +63,9 @@ android.release_keystore_passwd = JRuano
 
 # (android) The password for the alias
 android.release_alias_passwd = JRuano
+
+fullscreen = 1
+android.enable_optimizations = True
+log_level = 2
+android.allow_backup = 0
+android.hardwareAccelerated = 1

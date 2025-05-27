@@ -6,8 +6,6 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.animation import Animation
 from kivy.metrics import dp
 from kivy.graphics import Color, RoundedRectangle
-from kivy.graphics import Ellipse
-
 
 class NavigationBar(MDBoxLayout):
     def __init__(self, screen_manager, logout_callback, **kwargs):
@@ -29,7 +27,7 @@ class NavigationBar(MDBoxLayout):
             self.bg_rect = RoundedRectangle(
                 size=self.toolbar.size,
                 pos=self.toolbar.pos,
-                radius=[(36, 36), (36, 36), (0, 0), (0, 0)]
+                radius=[(dp(36), dp(36)), (dp(36), dp(36)), (0, 0), (0, 0)]
             )
             self.toolbar.bind(size=self.update_bg, pos=self.update_bg)
 
@@ -39,7 +37,7 @@ class NavigationBar(MDBoxLayout):
             icon="res/logo_circulada.png",
             size_hint=(None, None),
             size=(dp(80), dp(80)),
-            icon_size="80sp",
+            icon_size=dp(80),
             theme_text_color="Custom",
             text_color=(1, 1, 1, 1),
             pos_hint={"center_x": 0.5},
@@ -81,7 +79,7 @@ class NavigationBar(MDBoxLayout):
                 pos_hint={"center_x": 0.5, "center_y": 0.5}
             )
 
-            icon_size = "60sp" if option["text"] in ["Configuração", "Overview", "Equipamento"] else "32sp"
+            icon_size = dp(60) if option["text"] in ["Configuração", "Overview", "Equipamento"] else dp(32)
 
             button = MDIconButton(
                 icon=option["icon"],
@@ -94,7 +92,7 @@ class NavigationBar(MDBoxLayout):
 
             label = Label(
                 text=option["text"],
-                font_size="12sp",
+                font_size=dp(12),
                 halign="center",
                 valign="middle",
                 size_hint_y=None,

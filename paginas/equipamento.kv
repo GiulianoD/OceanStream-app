@@ -1,4 +1,5 @@
 #:kivy 2.3.0
+#:import dp kivy.metrics.dp
 
 <Equipamento>:
     FloatLayout:
@@ -29,7 +30,6 @@
                     text_color: 1, 1, 1, 1
                     on_release: app.gerenciador.current = 'overview'
 
-                
                 # Layout do título e seta (dentro do botão invisível)
                 BoxLayout:
                     id: titulo_container
@@ -42,8 +42,8 @@
 
                     MDLabel:
                         id: titulo
-                        text: "Selecione um equipamento"  # ← isso será substituído via Python
-                        font_size: "22sp"
+                        text: "Selecione um equipamento"
+                        font_size: dp(22)
                         bold: True
                         color: 1, 1, 1, 1
                         halign: "center"
@@ -57,7 +57,7 @@
                         icon: "chevron-down"
                         theme_text_color: "Custom"
                         text_color: 1, 1, 1, 1
-                        font_size: "22sp"
+                        font_size: dp(22)
                         size_hint: None, None
                         size: dp(32), dp(32)
                         pos_hint: {"center_y": 0.5}
@@ -69,9 +69,6 @@
                         canvas.after:
                             PopMatrix
                         rotation: 0
-
-
-
 
                 # Botão invisível por cima da área de título
                 Button:
@@ -85,10 +82,10 @@
             MDCard:
                 size_hint: (1, 1)
                 elevation: 4
-                radius: [60, 60, 0, 0]
+                radius: [dp(60), dp(60), 0, 0]
                 md_bg_color: utils.get_color_from_hex('#FFFFFF')
                 pos_hint: {'center_x': 0.5}
-                padding: [30, 30, 30, 0]
+                padding: [dp(30), dp(30), dp(30), 0]
 
                 BoxLayout:
                     orientation: 'vertical'
@@ -104,6 +101,7 @@
                         size_hint_y: None
                         height: dp(40)
                         spacing: dp(5)
+                        cols_minimum: {0: dp(100)}  # Primeira coluna com largura maior
                         canvas.before:
                             Color:
                                 rgba: 0.8, 0.8, 0.8, 1
@@ -118,6 +116,7 @@
                             height: self.minimum_height
                             row_default_height: dp(40)
                             spacing: dp(5)
+                            cols_minimum: {0: dp(100)}  # Primeira coluna com largura maior
                             canvas.before:
                                 Color:
                                     rgba: 0.9, 0.9, 0.9, 1

@@ -4,12 +4,11 @@
 
 <Configuracao>:
     FloatLayout:
-        # Adicionando uma imagem de fundo usando canvas
         canvas.before:
             Color:
                 rgba: 1, 1, 1, 1
             Rectangle:
-                source: 'res/gradient.png'  # Nome do arquivo da imagem
+                source: 'res/gradient.png'
                 pos: self.pos
                 size: self.size
 
@@ -17,12 +16,10 @@
         orientation: 'vertical'
         size_hint: (1, 1)
 
-        # Header
         FloatLayout:
             size_hint: (1, None)
             height: dp(80)
 
-            # Botão de voltar no canto superior esquerdo
             MDIconButton:
                 icon: "arrow-left"
                 size_hint: (None, None)
@@ -35,22 +32,22 @@
 
             Label:
                 text: 'Configurar meu Overview'
-                font_size: 30
+                font_size: dp(30)
                 bold: True
                 color: utils.get_color_from_hex('#FFFFFF')
                 size_hint: (1, None)
                 pos_hint: {"center_x": 0.5, "top": 1}
                 halign: "center"
                 valign: "middle"
+                height: dp(80)
 
-        # Card branco abaixo ocupando o espaço restante
         MDCard:
             size_hint: (1, 1)
             elevation: 4
-            radius: [60, 60, 0, 0]
+            radius: [dp(60), dp(60), 0, 0]
             md_bg_color: utils.get_color_from_hex('#FFFFFF')
-            pos_hint: {'center_x': 0.5}  # Centraliza horizontalmente
-            padding: [30, 30, 30, 0]
+            pos_hint: {'center_x': 0.5}
+            padding: [dp(30), dp(30), dp(30), 0]
 
             ScrollView:
                 BoxLayout:
@@ -70,24 +67,23 @@
                         spacing: dp(12)
                         canvas.before:
                             Color:
-                                rgba: (0, 0, 0, 0.2)  # Cor da sombra (preto com 20% de opacidade)
+                                rgba: (0, 0, 0, 0.2)
                             RoundedRectangle:
-                                size: [self.width + dp(6), self.height + dp(6)]  # Faz a sombra ligeiramente maior
-                                pos: [self.x - dp(3), self.y - dp(3)]  # Posiciona a sombra um pouco atrás
-                                radius: [dp(18)]  # Bordas arredondadas
+                                size: [self.width + dp(6), self.height + dp(6)]
+                                pos: [self.x - dp(3), self.y - dp(3)]
+                                radius: [dp(18)]
 
                             Color:
-                                rgba: (1, 1, 1, 1)  # Fundo branco
+                                rgba: (1, 1, 1, 1)
                             RoundedRectangle:
                                 size: self.size
                                 pos: self.pos
                                 radius: [dp(15)]
 
-
                         Label:
                             text: "Boia 10"
-                            font_size: "22sp"
-                            color: (0.02, 0.29, 0.61, 1)  # Azul de fundo
+                            font_size: dp(22)
+                            color: (0.02, 0.29, 0.61, 1)
                             bold: True
                             halign: 'center'
                             valign: 'middle'
@@ -100,11 +96,10 @@
                             size_hint_y: None
                             height: self.minimum_height
 
-                            # Velocidade de Corrente
                             Label:
                                 text: "Vel. Corr."
-                                font_size: "18sp"
-                                color: (0.02, 0.29, 0.61, 1)  # Azul de fundo
+                                font_size: dp(18)
+                                color: (0.02, 0.29, 0.61, 1)
                                 halign: 'left'
                                 valign: 'middle'
                                 size_hint_y: None
@@ -114,10 +109,9 @@
                                 on_state: app.toggle_parameter('Boia 10', 'Vel. Corr.', self.state)
                                 color_inactive: "blue"
 
-                            # Direção de Corrente
                             Label:
                                 text: "Dir. Corr."
-                                font_size: "18sp"
+                                font_size: dp(18)
                                 color: (0.02, 0.29, 0.61, 1)
                                 halign: 'left'
                                 valign: 'middle'
@@ -128,10 +122,9 @@
                                 on_state: app.toggle_parameter('Boia 10', 'Dir. Corr.', self.state)
                                 color_inactive: "blue"
 
-                            # Altura de Onda
                             Label:
                                 text: "Altura Onda"
-                                font_size: "18sp"
+                                font_size: dp(18)
                                 color: (0.02, 0.29, 0.61, 1)
                                 halign: 'left'
                                 valign: 'middle'
@@ -142,10 +135,9 @@
                                 on_state: app.toggle_parameter('Boia 10', 'Altura Onda', self.state)
                                 color_inactive: "blue"
 
-                            # Período de Onda
                             Label:
                                 text: "Período Onda"
-                                font_size: "18sp"
+                                font_size: dp(18)
                                 color: (0.02, 0.29, 0.61, 1)
                                 halign: 'left'
                                 valign: 'middle'
@@ -156,10 +148,9 @@
                                 on_state: app.toggle_parameter('Boia 10', 'Período Onda', self.state)
                                 color_inactive: "blue"
 
-                            # Bateria
                             Label:
                                 text: "Bateria"
-                                font_size: "18sp"
+                                font_size: dp(18)
                                 color: (0.02, 0.29, 0.61, 1)
                                 halign: 'left'
                                 valign: 'middle'
@@ -169,10 +160,10 @@
                                 id: chkbx_b10_bateria
                                 on_state: app.toggle_parameter('Boia 10', 'Bateria', self.state)
                                 color_inactive: "blue"
-                            # Pitch
+
                             Label:
                                 text: "Pitch"
-                                font_size: "18sp"
+                                font_size: dp(18)
                                 color: (0.02, 0.29, 0.61, 1)
                                 halign: 'left'
                                 valign: 'middle'
@@ -182,10 +173,10 @@
                                 id: chkbx_b10_pitch
                                 on_state: app.toggle_parameter('Boia 10', 'Pitch', self.state)
                                 color_inactive: "blue"
-                            # Roll
+
                             Label:
                                 text: "Roll"
-                                font_size: "18sp"
+                                font_size: dp(18)
                                 color: (0.02, 0.29, 0.61, 1)
                                 halign: 'left'
                                 valign: 'middle'
@@ -195,6 +186,8 @@
                                 id: chkbx_b10_roll
                                 on_state: app.toggle_parameter('Boia 10', 'Roll', self.state)
                                 color_inactive: "blue"
+
+
 
                     # Caixa para Boia 08
                     BoxLayout:
@@ -219,10 +212,9 @@
                                 pos: self.pos
                                 radius: [dp(15)]
 
-
                         Label:
                             text: "Boia 08"
-                            font_size: "22sp"
+                            font_size: dp(22)
                             color: (0.02, 0.29, 0.61, 1)  # Azul de fundo
                             bold: True
                             halign: 'center'
@@ -239,7 +231,7 @@
                             # Velocidade de Corrente
                             Label:
                                 text: "Vel. Corr."
-                                font_size: "18sp"
+                                font_size: dp(18)
                                 color: (0.02, 0.29, 0.61, 1)  # Azul de fundo
                                 halign: 'left'
                                 valign: 'middle'
@@ -253,7 +245,7 @@
                             # Direção de Corrente
                             Label:
                                 text: "Dir. Corr."
-                                font_size: "18sp"
+                                font_size: dp(18)
                                 color: (0.02, 0.29, 0.61, 1)
                                 halign: 'left'
                                 valign: 'middle'
@@ -267,7 +259,7 @@
                             # Altura de Onda
                             Label:
                                 text: "Altura Onda"
-                                font_size: "18sp"
+                                font_size: dp(18)
                                 color: (0.02, 0.29, 0.61, 1)
                                 halign: 'left'
                                 valign: 'middle'
@@ -281,7 +273,7 @@
                             # Período de Onda
                             Label:
                                 text: "Período Onda"
-                                font_size: "18sp"
+                                font_size: dp(18)
                                 color: (0.02, 0.29, 0.61, 1)
                                 halign: 'left'
                                 valign: 'middle'
@@ -295,7 +287,7 @@
                             # Bateria
                             Label:
                                 text: "Bateria"
-                                font_size: "18sp"
+                                font_size: dp(18)
                                 color: (0.02, 0.29, 0.61, 1)
                                 halign: 'left'
                                 valign: 'middle'
@@ -305,10 +297,11 @@
                                 id: chkbx_b08_bateria
                                 on_state: app.toggle_parameter('Boia 08', 'Bateria', self.state)
                                 color_inactive: "blue"
+
                             # Pitch
                             Label:
                                 text: "Pitch"
-                                font_size: "18sp"
+                                font_size: dp(18)
                                 color: (0.02, 0.29, 0.61, 1)
                                 halign: 'left'
                                 valign: 'middle'
@@ -318,10 +311,11 @@
                                 id: chkbx_b08_pitch
                                 on_state: app.toggle_parameter('Boia 08', 'Pitch', self.state)
                                 color_inactive: "blue"
+
                             # Roll
                             Label:
                                 text: "Roll"
-                                font_size: "18sp"
+                                font_size: dp(18)
                                 color: (0.02, 0.29, 0.61, 1)
                                 halign: 'left'
                                 valign: 'middle'
@@ -331,7 +325,6 @@
                                 id: chkbx_b08_roll
                                 on_state: app.toggle_parameter('Boia 08', 'Roll', self.state)
                                 color_inactive: "blue"
-
                     # Caixa para Boia 04
                     BoxLayout:
                         codigo_boia: "04"
@@ -355,10 +348,9 @@
                                 pos: self.pos
                                 radius: [dp(15)]
 
-
                         Label:
                             text: "Boia 04"
-                            font_size: "22sp"
+                            font_size: dp(22)
                             color: (0.02, 0.29, 0.61, 1)  # Azul de fundo
                             bold: True
                             halign: 'center'
@@ -375,7 +367,7 @@
                             # Velocidade de Corrente
                             Label:
                                 text: "Vel. Corr."
-                                font_size: "18sp"
+                                font_size: dp(18)
                                 color: (0.02, 0.29, 0.61, 1)  # Azul de fundo
                                 halign: 'left'
                                 valign: 'middle'
@@ -389,7 +381,7 @@
                             # Direção de Corrente
                             Label:
                                 text: "Dir. Corr."
-                                font_size: "18sp"
+                                font_size: dp(18)
                                 color: (0.02, 0.29, 0.61, 1)
                                 halign: 'left'
                                 valign: 'middle'
@@ -403,7 +395,7 @@
                             # Altura de Onda
                             Label:
                                 text: "Altura Onda"
-                                font_size: "18sp"
+                                font_size: dp(18)
                                 color: (0.02, 0.29, 0.61, 1)
                                 halign: 'left'
                                 valign: 'middle'
@@ -417,7 +409,7 @@
                             # Período de Onda
                             Label:
                                 text: "Período Onda"
-                                font_size: "18sp"
+                                font_size: dp(18)
                                 color: (0.02, 0.29, 0.61, 1)
                                 halign: 'left'
                                 valign: 'middle'
@@ -431,7 +423,7 @@
                             # Bateria
                             Label:
                                 text: "Bateria"
-                                font_size: "18sp"
+                                font_size: dp(18)
                                 color: (0.02, 0.29, 0.61, 1)
                                 halign: 'left'
                                 valign: 'middle'
@@ -441,10 +433,11 @@
                                 id: chkbx_b04_bateria
                                 on_state: app.toggle_parameter('Boia 04', 'Bateria', self.state)
                                 color_inactive: "blue"
+
                             # Pitch
                             Label:
                                 text: "Pitch"
-                                font_size: "18sp"
+                                font_size: dp(18)
                                 color: (0.02, 0.29, 0.61, 1)
                                 halign: 'left'
                                 valign: 'middle'
@@ -454,10 +447,11 @@
                                 id: chkbx_b04_pitch
                                 on_state: app.toggle_parameter('Boia 04', 'Pitch', self.state)
                                 color_inactive: "blue"
+
                             # Roll
                             Label:
                                 text: "Roll"
-                                font_size: "18sp"
+                                font_size: dp(18)
                                 color: (0.02, 0.29, 0.61, 1)
                                 halign: 'left'
                                 valign: 'middle'
@@ -467,7 +461,6 @@
                                 id: chkbx_b04_roll
                                 on_state: app.toggle_parameter('Boia 04', 'Roll', self.state)
                                 color_inactive: "blue"
-
                     # Ondógrafo Píer II
                     BoxLayout:
                         orientation: 'vertical'
@@ -492,7 +485,7 @@
 
                         Label:
                             text: "Ondógrafo Píer II"
-                            font_size: "22sp"
+                            font_size: dp(22)
                             color: (0.02, 0.29, 0.61, 1)  # Azul escuro, igual às outras seções
                             bold: True
                             halign: 'center'
@@ -509,7 +502,7 @@
                             # Altura Significativa de Onda
                             Label:
                                 text: "Altura"
-                                font_size: "18sp"
+                                font_size: dp(18)
                                 color: (0.02, 0.29, 0.61, 1)  # Azul escuro, igual às outras seções
                                 halign: 'left'
                                 valign: 'middle'
@@ -523,7 +516,7 @@
                             # Período de Onda
                             Label:
                                 text: "Período"
-                                font_size: "18sp"
+                                font_size: dp(18)
                                 color: (0.02, 0.29, 0.61, 1)  # Azul escuro, igual às outras seções
                                 halign: 'left'
                                 valign: 'middle'
@@ -559,7 +552,7 @@
 
                         Label:
                             text: "Ondógrafo TGL"
-                            font_size: "22sp"
+                            font_size: dp(22)
                             color: (0.02, 0.29, 0.61, 1)
                             bold: True
                             halign: 'center'
@@ -576,7 +569,7 @@
                             # Altura Significativa de Onda
                             Label:
                                 text: "Altura"
-                                font_size: "18sp"
+                                font_size: dp(18)
                                 color: (0.02, 0.29, 0.61, 1)  # Azul escuro, igual às outras seções
                                 halign: 'left'
                                 valign: 'middle'
@@ -590,7 +583,7 @@
                             # Período de Onda
                             Label:
                                 text: "Período"
-                                font_size: "18sp"
+                                font_size: dp(18)
                                 color: (0.02, 0.29, 0.61, 1)  # Azul escuro, igual às outras seções
                                 halign: 'left'
                                 valign: 'middle'
@@ -625,7 +618,7 @@
 
                         Label:
                             text: "Ondógrafo TPD"
-                            font_size: "22sp"
+                            font_size: dp(22)
                             color: (0.02, 0.29, 0.61, 1)
                             bold: True
                             halign: 'center'
@@ -642,7 +635,7 @@
                             # Altura Significativa de Onda
                             Label:
                                 text: "Altura"
-                                font_size: "18sp"
+                                font_size: dp(18)
                                 color: (0.02, 0.29, 0.61, 1)  # Azul escuro, igual às outras seções
                                 halign: 'left'
                                 valign: 'middle'
@@ -656,7 +649,7 @@
                             # Período de Onda
                             Label:
                                 text: "Período"
-                                font_size: "18sp"
+                                font_size: dp(18)
                                 color: (0.02, 0.29, 0.61, 1)  # Azul escuro, igual às outras seções
                                 halign: 'left'
                                 valign: 'middle'
@@ -691,7 +684,7 @@
 
                         Label:
                             text: "Ondógrafo TPM"
-                            font_size: "22sp"
+                            font_size: dp(22)
                             color: (0.02, 0.29, 0.61, 1)
                             bold: True
                             halign: 'center'
@@ -708,7 +701,7 @@
                             # Altura Significativa de Onda
                             Label:
                                 text: "Altura"
-                                font_size: "18sp"
+                                font_size: dp(18)
                                 color: (0.02, 0.29, 0.61, 1)  # Azul escuro, igual às outras seções
                                 halign: 'left'
                                 valign: 'middle'
@@ -722,7 +715,7 @@
                             # Período de Onda
                             Label:
                                 text: "Período"
-                                font_size: "18sp"
+                                font_size: dp(18)
                                 color: (0.02, 0.29, 0.61, 1)  # Azul escuro, igual às outras seções
                                 halign: 'left'
                                 valign: 'middle'
@@ -757,7 +750,7 @@
 
                         Label:
                             text: "Marégrafo"
-                            font_size: "22sp"
+                            font_size: dp(22)
                             color: (0.02, 0.29, 0.61, 1)  # Azul de fundo
                             bold: True
                             halign: 'center'
@@ -774,7 +767,7 @@
                             # Maré Reduzida
                             Label:
                                 text: "Maré Reduzida"
-                                font_size: "18sp"
+                                font_size: dp(18)
                                 color: (0.02, 0.29, 0.61, 1)  # Azul de fundo
                                 halign: 'left'
                                 valign: 'middle'
@@ -811,7 +804,7 @@
 
                         Label:
                             text: "Estação Meteorológica "
-                            font_size: "22sp"
+                            font_size: dp(22)
                             color: (0.02, 0.29, 0.61, 1)  # Azul escuro, igual ao das outras seções
                             bold: True
                             halign: 'center'
@@ -828,7 +821,7 @@
                             # Velocidade do Vento
                             Label:
                                 text: "Vel. Vento"
-                                font_size: "18sp"
+                                font_size: dp(18)
                                 color: (0.02, 0.29, 0.61, 1)  # Azul escuro, igual às outras seções
                                 halign: 'left'
                                 valign: 'middle'
@@ -842,7 +835,7 @@
                             # Rajada do Vento
                             Label:
                                 text: "Rajada"
-                                font_size: "18sp"
+                                font_size: dp(18)
                                 color: (0.02, 0.29, 0.61, 1)  # Azul escuro, igual às outras seções
                                 halign: 'left'
                                 valign: 'middle'
@@ -856,7 +849,7 @@
                             # Direção do Vento
                             Label:
                                 text: "Dir. Vento"
-                                font_size: "18sp"
+                                font_size: dp(18)
                                 color: (0.02, 0.29, 0.61, 1)  # Azul escuro, igual às outras seções
                                 halign: 'left'
                                 valign: 'middle'
@@ -870,7 +863,7 @@
                             # Precipitação
                             Label:
                                 text: "Chuva"
-                                font_size: "18sp"
+                                font_size: dp(18)
                                 color: (0.02, 0.29, 0.61, 1)  # Azul escuro, igual às outras seções
                                 halign: 'left'
                                 valign: 'middle'
