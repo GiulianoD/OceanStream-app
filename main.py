@@ -159,7 +159,7 @@ def get_access_token():
         return ""
 
 def delete_access_token():
-    app_storage_dir = storagepath.get_home_dir()
+    app_storage_dir = get_storage_path()
     token_file_path = os.path.join(app_storage_dir, JWT_FILE)
     if os.path.exists(token_file_path):
         os.remove(token_file_path)
@@ -792,24 +792,21 @@ class Equipamento(MDScreen):
                 colunas = CABECALHO_TABELA[e]
                 table.cols = len(colunas)
                 table_h.cols = len(colunas)
-                
+
                 # Define largura mínima das colunas (primeira coluna maior)
                 table_h.cols_minimum = {0: tam_col_1}  # Timestamp mais largo
                 table.cols_minimum = {0: tam_col_1}    # Timestamp mais largo
-                
+
                 for i, coluna in enumerate(colunas):
                     # Primeira coluna com alinhamento à esquerda e tamanho maior
-                    # halign = 'left' if i == 0 else 'center'
                     label = Label(
                         text=coluna[1], 
                         bold=True, 
                         color=self.cor_label,
                         font_size=dp(17),
-                        # halign=halign
                     )
                     if i == 0:  # Só para a primeira coluna
                         label.text_size = (tam_col_1, None)  # Largura fixa para a primeira coluna
-                        # label.shorten = True  # Encurta texto longo com "..."
                     table_h.add_widget(label)
 
         # Função para tratar valores inválidos
@@ -822,16 +819,13 @@ class Equipamento(MDScreen):
         for row in self.data:
             for i, cell in enumerate(row):
                 # Primeira coluna com alinhamento à esquerda
-                # halign = 'left' if i == 0 else 'center'
                 label = Label(
                     text=format_cell_value(cell),
                     color=self.cor_label,
                     font_size=dp(16),
-                    # halign=halign
                 )
                 if i == 0:  # Só para a primeira coluna
                     label.text_size = (tam_col_1, None)  # Largura fixa para a primeira coluna
-                    # label.shorten = True  # Encurta texto longo com "..."
                 table.add_widget(label)
     
     def validate_dates(self, instance):
