@@ -7,7 +7,7 @@ from kivymd.uix.pickers import MDDatePicker
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.screenmanager import MDScreenManager
 from kivymd.uix.selectioncontrol import MDCheckbox
-from kivy_garden.matplotlib import FigureCanvasKivyAgg
+from kivy_garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
 from kivy.animation import Animation
 from kivy.clock import Clock
 from kivy.config import Config
@@ -23,7 +23,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.label import Label
 from kivy.uix.widget import Widget
-from plyer import storagepath
+from os.path import expanduser
 from datetime import datetime, timedelta
 import json
 import requests
@@ -125,12 +125,24 @@ CABECALHO_TABELA = {
 ### JWT
 JWT_FILE = "oceanstream.jwt"
 
+import platform
+from os.path import expanduser
+
 def get_storage_path():
-    if platform == 'android':
-        from android.storage import app_storage_path
-        return app_storage_path()
-    else:
+    system = platform.system().lower()
+
+    try:
+        # Android
+        if system == "linux" and platform.machine().startswith("arm"):
+            from android.storage import app_storage_path
+            return app_storage_path()
+        # macOS (Darwin), Linux (desktop), Windows
+        from plyer import storagepath
         return storagepath.get_home_dir()
+    except (ImportError, NotImplementedError):
+        # Fallback para o diretório do usuário
+        return expanduser("~")
+
 
 def store_access_token(token):
     app_storage_dir = get_storage_path()
