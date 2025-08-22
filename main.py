@@ -18,13 +18,13 @@ from kivy.metrics import dp
 from kivy.properties import ObjectProperty, ListProperty
 from kivy.uix.image import Image
 from kivy.uix.scrollview import ScrollView
-from kivy.utils import platform
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.label import Label
 from kivy.uix.widget import Widget
+from kivy.utils import platform as platform
 from os.path import expanduser
-from datetime import datetime, timedelta
+from datetime import datetime
 import json
 import requests
 import os
@@ -36,6 +36,28 @@ matplotlib.use("Agg")  # Backend não interativo (sem UI)
 import ssl
 ssl._create_default_https_context = ssl._create_unverified_context
 
+timeout_request = 20
+
+debug_mode = True
+def debug_storage_info():
+    """Função para debug de informações de armazenamento"""
+    storage_path = get_storage_path()
+    Logger.info(f"Storage path: {storage_path}")
+    
+    # Verifica permissões
+    if os.path.exists(storage_path):
+        can_read = os.access(storage_path, os.R_OK)
+        can_write = os.access(storage_path, os.W_OK)
+        Logger.info(f"Permissões - Leitura: {can_read}, Escrita: {can_write}")
+    else:
+        Logger.info("Diretório de storage não existe")
+    
+    # Lista arquivos no diretório (para debug)
+    try:
+        files = os.listdir(storage_path)
+        Logger.info(f"Arquivos no diretório: {files}")
+    except Exception as e:
+        Logger.error(f"Erro ao listar arquivos: {str(e)}")
 
 class StyledCheckbox(MDCheckbox):
     def __init__(self, **kwargs):
@@ -125,21 +147,39 @@ CABECALHO_TABELA = {
 ### JWT
 JWT_FILE = "oceanstream.jwt"
 
-import platform
-from os.path import expanduser
+
 
 def get_storage_path():
-    system = platform.system().lower()
 
     try:
         # Android
-        if system == "linux" and platform.machine().startswith("arm"):
-            from android.storage import app_storage_path
-            return app_storage_path()
-        # macOS (Darwin), Linux (desktop), Windows
-        from plyer import storagepath
-        return storagepath.get_home_dir()
-    except (ImportError, NotImplementedError):
+        if platform == 'android':
+            try:
+                from android.storage import app_storage_path
+                return app_storage_path()
+            except ImportError:
+                return expanduser("~")
+            except Exception as e:
+                Logger.error(f"Erro ao obter diretório no Android: {str(e)}")
+                return expanduser("~")
+
+        # iOS (não testado, mas como referência)
+        elif platform == 'ios':
+            from plyer import storagepath
+            return storagepath.get_application_dir()
+        
+        # windows
+        elif platform == 'win':
+            from plyer import storagepath
+            return storagepath.get_home_dir()
+
+        # macOS, Linux (desktop) e outros
+        else:
+            from plyer import storagepath
+            return storagepath.get_home_dir()
+
+    except (ImportError, NotImplementedError, Exception) as e:
+        Logger.error(f"Erro em get_storage_path: {str(e)}")
         # Fallback para o diretório do usuário
         return expanduser("~")
 
@@ -147,27 +187,61 @@ def get_storage_path():
 def store_access_token(token):
     app_storage_dir = get_storage_path()
     token_file_path = os.path.join(app_storage_dir, JWT_FILE)
+    
+    Logger.info(f"Tentando salvar token em: {token_file_path}")
+    
     try:
+        # Garante que o diretório existe
+        os.makedirs(app_storage_dir, exist_ok=True)
+        
+        # Verifica se temos permissão de escrita
+        if not os.access(app_storage_dir, os.W_OK):
+            Logger.error(f"Sem permissão de escrita em: {app_storage_dir}")
+            if debug_mode:
+                return [False, f"Sem permissão de escrita em: {app_storage_dir}"]
+            return False
+        
         with open(token_file_path, 'w') as token_file:
             token_file.write(token)
-        Logger.info(f"Token salvo em {token_file_path}")
+        
+        Logger.info(f"Token salvo com sucesso em: {token_file_path}")
+        Logger.info(f"Tamanho do token: {len(token)} caracteres")
+        
+        if debug_mode:
+            return [True, f"Token salvo em: {token_file_path}"]
+        return True
+        
+    except PermissionError as e:
+        error_msg = f"Erro de permissão ao salvar token: {str(e)}"
+        Logger.error(error_msg)
+        if debug_mode:
+            return [False, error_msg]
+        return False
     except Exception as e:
-        Logger.error(f"Erro ao salvar token: {str(e)}")
+        error_msg = f"Erro ao salvar token: {str(e)}"
+        Logger.error(error_msg)
+        if debug_mode:
+            return [False, error_msg]
+        return False
 
 def get_access_token():
     app_storage_dir = get_storage_path()
     token_file_path = os.path.join(app_storage_dir, JWT_FILE)
+    Logger.info(f"Tentando ler token de: {token_file_path}")
+    
     if os.path.exists(token_file_path):
         try:
             with open(token_file_path, 'r') as token_file:
                 token = token_file.read()
-                Logger.info("JWT recuperado.")
+                Logger.info("JWT recuperado com sucesso.")
+                Logger.info(f"Token length: {len(token)}")
                 return token
         except Exception as e:
             Logger.error(f"Erro ao ler token: {str(e)}")
             return ""
     else:
         Logger.info("Nenhum token encontrado.")
+        Logger.info(f"Arquivo não existe: {token_file_path}")
         return ""
 
 def delete_access_token():
@@ -261,7 +335,7 @@ def api_dados(nome_tabela, start_date, end_date):
 
     # Faz a requisição POST
     try:
-        response = requests.post(url, headers=headers, json=corpo)
+        response = requests.post(url, headers=headers, json=corpo, timeout=timeout_request)
 
         # Verifica se a requisição foi bem-sucedida
         if response.status_code != 200:
@@ -288,7 +362,7 @@ def api_ultimosDados():
 
     # Faz a requisição POST
     try:
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, timeout=timeout_request)
 
         # Verifica se a requisição foi bem-sucedida
         if response.status_code != 200:
@@ -308,12 +382,28 @@ def login(email, senha):
     headers = {'Content-Type': 'application/json'}
     corpo = {"email": email, "senha": senha}
     try:
-        response = requests.post(url, json=corpo, headers=headers)
+        response = requests.post(url, json=corpo, headers=headers, timeout=timeout_request)
         if response.status_code == 200:
             data = response.json()
             access_token = data.get('accessToken')
-            store_access_token(access_token)
-            return [True, '']
+            if access_token:
+                if debug_mode:
+                    # DEBUG: Mostra informações do storage
+                    # from main import debug_storage_info, get_storage_path
+                    debug_storage_info()
+                    Logger.info(f"Token recebido: {access_token[:50]}...")
+                    retorno_SAT = store_access_token(access_token)
+                    if retorno_SAT[0]:
+                        return [True, '']
+                    else:
+                        return [False, f'Erro ao salvar token\n{retorno_SAT[1]}']
+                else:
+                    if store_access_token(access_token):
+                        return [True, '']
+                    else:
+                        return [False, 'Erro ao salvar token']
+            else:
+                return [False, 'Erro ao adiquirir token']
         else:
             msg = f"Falha no login: {response.status_code} - {response.text}"
             print(msg)
@@ -1213,18 +1303,30 @@ class OceanStream(MDApp):
                 if equip['selecionado']:
                     self.selected_parameters[equip['text']] = equip['selecionado'].copy()
 
-    def build(self):
-        # Solicitar permissões no Android
+    def on_start(self):
+        # Garante as permissões necessárias
         if platform == 'android':
-            from android.permissions import request_permissions, Permission
-            request_permissions([
+            from android.permissions import request_permissions, Permission, check_permission
+            # Lista de permissões necessárias
+            permissions = [
                 Permission.INTERNET,
                 Permission.READ_EXTERNAL_STORAGE,
-                Permission.WRITE_EXTERNAL_STORAGE
-            ])
+                Permission.WRITE_EXTERNAL_STORAGE,
+                Permission.ACCESS_NETWORK_STATE
+            ]
 
+            # Solicitar permissões no início do app
+            request_permissions(permissions)
+
+            # Verifica e solicita permissões
+            for perm in permissions:
+                if not check_permission(perm):
+                    request_permissions([perm])
+                    break
+
+    def build(self):
         from kivy.core.window import Window
-
+        # Solicitar permissões no Android
         if platform == 'android':
             Window.softinput_mode = 'resize'
         else:
