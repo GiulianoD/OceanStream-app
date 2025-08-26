@@ -1,6 +1,7 @@
 from kivymd.app import MDApp
-from kivymd.uix.button import MDRectangleFlatButton, MDRaisedButton
+from kivymd.uix.button import MDFlatButton, MDRectangleFlatButton, MDRaisedButton
 from kivymd.uix.card import MDCard
+from kivymd.uix.dialog import MDDialog
 from kivymd.uix.label import MDLabel
 from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.pickers import MDDatePicker
@@ -150,7 +151,6 @@ JWT_FILE = "oceanstream.jwt"
 
 
 def get_storage_path():
-
     try:
         # Android
         if platform == 'android':
@@ -372,6 +372,40 @@ def api_ultimosDados():
         data = response.json()
 
         return data
+
+    except Exception as error:
+        print(f"Erro: {error}")
+
+# GET /lastestVersion
+def api_lastestVersion():
+    # Cabeçalhos da requisição
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {get_access_token()}"
+    }
+
+    # URL da API
+    url = API_PRFX+"lastestVersion/"
+
+    # Faz a requisição POST
+    try:
+        if platform == 'android':
+            url+='android'
+        elif platform == 'ios':
+            url+='ios'
+        elif platform == 'win':
+            url+='windows'
+        # macOS, Linux (desktop) e outros
+        else:
+            pass
+
+        response = requests.get(url, headers=headers, timeout=timeout_request)
+
+        # Verifica se a requisição foi bem-sucedida
+        if response.status_code != 200:
+            raise Exception(f"Erro na requisição: {response.status_code} - {response.text}")
+
+        return response.text
 
     except Exception as error:
         print(f"Erro: {error}")
@@ -1292,6 +1326,9 @@ class GerenciadorTelas(MDScreenManager):
     pass
 
 class OceanStream(MDApp):
+    def get_version_name(self):
+        return "0.3.1"
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.selected_parameters = {}
@@ -1304,6 +1341,7 @@ class OceanStream(MDApp):
                     self.selected_parameters[equip['text']] = equip['selecionado'].copy()
 
     def on_start(self):
+        self.check_for_updates()
         # Garante as permissões necessárias
         if platform == 'android':
             from android.permissions import request_permissions, Permission, check_permission
@@ -1410,6 +1448,55 @@ class OceanStream(MDApp):
         delete_access_token()
         self.gerenciador.current = 'login'
 
+    def check_for_updates(self):
+        def compara_versoes(v_atual, v_disponivel):
+            v_atual_partes = v_atual.split('.')
+            v_disp_partes = v_disponivel.split('.')
+            parte=0
+            for _ in v_disp_partes:
+                if not v_atual_partes[parte] or (int(v_disp_partes[parte]) > int(v_atual_partes[parte])):
+                    return True
+                parte+=1
+
+        current_version = self.get_version_name()
+        latest_version = api_lastestVersion()
+        if latest_version and compara_versoes(current_version, latest_version):
+            self.show_update_dialog(current_version, latest_version)
+
+    def show_update_dialog(self, current_version, latest_version):
+        texto = f"Atualização disponível!\n\nVersão atual: {current_version}\nVersão disponível: {latest_version}"
+        self.dialog = MDDialog(
+            title="📱 Atualização Disponível",
+            text=texto,
+            buttons=[
+                MDFlatButton(
+                    text="Atualizar",
+                    on_release=self.open_store
+                ),
+                MDFlatButton(
+                    text="Mais tarde",
+                    on_release=lambda x: self.dialog.dismiss()
+                ),
+            ],
+        )
+        self.dialog.open()
+
+    def open_store(self, instance):
+        if platform == 'android':
+            import webbrowser
+            # package_name = "seu.pacote.app"
+            webbrowser.open(f"https://play.google.com/store/apps/details?id=org.oceanstream.oceanstream")
+            self.dialog.dismiss()
+        elif platform == 'ios':
+            import webbrowser
+            # package_name = "seu.pacote.app"
+            webbrowser.open(f"https://play.google.com/store/apps/details?id=org.oceanstream.oceanstream")
+            self.dialog.dismiss()
+        elif platform == 'windows':
+            import webbrowser
+            # package_name = "seu.pacote.app"
+            webbrowser.open(f"https://play.google.com/store/apps/details?id=org.oceanstream.oceanstream")
+            self.dialog.dismiss()
 
 if __name__ == '__main__':
     OceanStream().run()
