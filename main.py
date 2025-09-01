@@ -91,7 +91,7 @@ PARAMETROS_IMAGENS = {
     "Período Onda":            "res/Onda - oceanstream.png",                                          # Onda
     "Altura":                  "res/Onda com linha- oceanstream.png",                                 # Ondógrafo
     "Período":                 "res/Onda - oceanstream.png",                                          # Ondógrafo
-    "Maré Reduzida":           "res/Regua maregrafo com seta - oceanstream (2).png",                  # Marégrafo
+    "Maré Reduzida":           "res/Regua maregrafo com seta - oceanstream.png",                      # Marégrafo
     "Vel. Vento":              "res/Pressao atmosferica - oceanstream.png",                           # Est.M
     "Rajada":                  "res/Pressao atmosferica - oceanstream.png",                           # Est.M
     "Dir. Vento":              "res/Rosa dos ventos - com direcao de cor diferente-oceanstream.png",  # Est.M
@@ -376,7 +376,7 @@ def api_ultimosDados():
     except Exception as error:
         print(f"Erro: {error}")
 
-# GET /lastestVersion
+# POST /lastestVersion
 def api_lastestVersion():
     # Cabeçalhos da requisição
     headers = {
@@ -389,17 +389,15 @@ def api_lastestVersion():
 
     # Faz a requisição POST
     try:
-        if platform == 'android':
+        if platform == 'android' or platform == 'win':
             url+='android'
         elif platform == 'ios':
             url+='ios'
-        elif platform == 'win':
-            url+='windows'
         # macOS, Linux (desktop) e outros
         else:
             pass
 
-        response = requests.get(url, headers=headers, timeout=timeout_request)
+        response = requests.post(url, headers=headers, timeout=timeout_request)
 
         # Verifica se a requisição foi bem-sucedida
         if response.status_code != 200:
