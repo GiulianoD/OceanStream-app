@@ -17,11 +17,11 @@ source.include_exts = py,png,jpg,kv,atlas,json
 source.main = main.py
 
 # Inclui todo o conteúdo da pasta res (se você usa imagens lá)
-#presplash.filename = res/logo.png
+presplash.filename = res/logo.png
 #android.presplash_color = #55E6C9
 
 # Versão do app
-version = 0.3
+version = 0.3.2
 
 # Ícone do app (opcional)
 icon.filename = res/logo.png
